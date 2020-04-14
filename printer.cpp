@@ -8,6 +8,8 @@
 
 #include <netinet/in.h>
 
+#define LOG 0
+
 using namespace std;
 
 int main(){
@@ -46,9 +48,12 @@ int main(){
 
     //check connection status
     if(connection_status != 0){
-        cout << "Faild to connect\n";
+        if(LOG) cout << "PRINTER_LOG: Faild to connect\n";
         return 0;
     }
+    else
+        if(LOG) cout << "PRINTER_LOG: Connected to client" << endl;
+    
 
     //array to hold the response
     char clientResponse[4096];
@@ -62,19 +67,24 @@ int main(){
 
         if(result == -1)
         {
-            std::cout << "Error: " << errno << std::endl;
+            if(LOG) cout << "PRINTER_LOG: Error receiving messege from client: " << errno << std::endl;
             break;
         }
 
         else if(result == 0)
         {
-            std::cout << "Disconnected" << std::endl;
+            if(LOG) cout << "PRINTER_LOG: Disconnected from client" << std::endl;
             break;
         }
         else
         {
-            if(strcmp(clientResponse, "fim") == 0)
+            if(strcmp(clientResponse, "fim") == 0){
+                if(LOG) cout << "PRINTER_LOG: Client ordered printer to shut down" << endl;
                 break;
+            }
+
+            if(LOG) cout << "PRINTER_LOG: Received messege from client:" << endl;
+            if(LOG) cout << "/t'" << clientResponse << "'" << endl;
 
             cout << "Typer says: " << clientResponse << endl;
         }

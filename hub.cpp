@@ -9,6 +9,7 @@
 #include <netinet/in.h>
 
 #define SERVER_DOOR 9030
+#define LOG 0
 
 using namespace std;
 
@@ -33,15 +34,15 @@ int main(){
     //accepts client1 and client2 connections, respectively
     int clientSocket_1 = accept(hubSocket, NULL, NULL);
     if(clientSocket_1 != -1)
-        cout << "Connected to client 1" << endl;
+        if(LOG) cout << "HUB_LOG: Connected to client 1" << endl;
     else
-        cout << "Failed to connect to client 1" << endl;
+        if(LOG) cout << "HUB_LOG: Failed to connect to client 1" << endl;
     
     int clientSocket_2 = accept(hubSocket, NULL, NULL);
     if(clientSocket_2 != -1)
-        cout << "Connected to client 2" << endl;
+        if(LOG) cout << "HUB_LOG: Connected to client 2" << endl;
     else
-        cout << "Failed to connect to client 2" << endl;
+        if(LOG) cout << "HUB_LOG: Failed to connect to client 2" << endl;
 
     //arrays to hold messeges sent by client1 to client2 and vice-versa
     char client1Messege[4096];
@@ -53,19 +54,24 @@ int main(){
         const int result1 = recv(clientSocket_1, &client1Messege, sizeof(client1Messege), 0);
         if(result1 == -1)
         {
-            std::cout << "Error: " << errno << std::endl;
+            if(LOG) std::cout << "HUB_LOG: Error receiving messege from client1: " << errno << std::endl;
             break;
         }
 
         else if(result1 == 0)
         {
-            std::cout << "Disconnected" << std::endl;
+            if(LOG) std::cout << "HUB_LOG: Disconnected from client1" << std::endl;
             break;
         }
         else
         {
-            if(strcmp(client1Messege, "fim") == 0)
+            if(strcmp(client1Messege, "fim") == 0){
+                if(LOG) cout << "HUB_LOG: Client1 ordered hub to shut down" << endl;
                 break;
+            }
+
+            if(LOG) cout << "HUB_LOG: Received messege from client1:" << endl;
+            if(LOG) cout << "/t'" << client1Messege << "'" << endl;
 
             send(clientSocket_2, client1Messege, sizeof(client1Messege), 0);
         }
@@ -75,19 +81,24 @@ int main(){
         const int result2 = recv(clientSocket_2, &client2Messege, sizeof(client2Messege), 0);
         if(result2 == -1)
         {
-            std::cout << "Error: " << errno << std::endl;
+            if(LOG) std::cout << "HUB_LOG: Error receiving messege from client2: " << errno << std::endl;
             break;
         }
 
         else if(result2 == 0)
         {
-            std::cout << "Disconnected" << std::endl;
+            if(LOG) std::cout << "HUB_LOG: Disconnected from client2" << std::endl;
             break;
         }
         else
         {
-            if(strcmp(client2Messege, "fim") == 0)
+            if(strcmp(client2Messege, "fim") == 0){
+                if(LOG) cout << "HUB_LOG: Client2 ordered hub to shut down" << endl;
                 break;
+            }
+
+            if(LOG) cout << "HUB_LOG: Received messege from client2:" << endl;
+            if(LOG) cout << "/t'" << client2Messege << "'" << endl;
 
             send(clientSocket_1, client2Messege, sizeof(client2Messege), 0);
         }

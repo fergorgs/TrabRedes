@@ -9,6 +9,8 @@
 #include <netinet/in.h>
 //#include <arpa/inet.h>
 
+#define LOG 0
+
 using namespace std;
 
 int main(){
@@ -47,9 +49,12 @@ int main(){
 
     //check for connection status
     if(connection_status != 0){
-        cout << "Faild to connect\n";
+        if(LOG) cout << "TYPER_LOG: Faild to connect\n";
         return 0;
     }
+    else
+        if(LOG) cout << "TYPER_LOG: Connected to client" << endl;
+    
 
 
     //array to hold the messege to be sent
@@ -62,8 +67,10 @@ int main(){
 
         send(clientSocket, typerMessege, sizeof(typerMessege), 0);
 
-        if(strcmp(typerMessege, "fim") == 0)
-            break;
+        if(strcmp(typerMessege, "fim") == 0){
+               if(LOG) cout << "TYPER_LOG: User ordered typer to shut down" << endl;
+               break;
+        }
     }
 
 

@@ -10,6 +10,7 @@
 //#include <arpa/inet.h>
 
 #define SERVER_DOOR 9030
+#define LOG 0
 
 using namespace std;
 
@@ -63,11 +64,11 @@ int main(){
 
     //check for connection status
     if(connection_status != 0){
-        cout << "Faild to connect to hub" << endl;
+        if(LOG) cout << "CLIENT_LOG: Faild to connect to hub" << endl;
         return 0;
     }
     else
-        cout << "Connected to hub" << endl;
+        if(LOG) cout << "CLIENT_LOG: Connected to hub" << endl;
 
 
     //create a socket to receive the "Typer"
@@ -89,15 +90,15 @@ int main(){
     //accepts the Typer and Printer connections, respectively
     int typerSocket = accept(clientSocket, NULL, NULL);
     if(typerSocket != -1)
-        cout << "Connected to typer" << endl;
+        if(LOG) cout << "CLIENT_LOG: Connected to typer" << endl;
     else
-        cout << "Failed to connect to typer" << endl;
+        if(LOG) cout << "CLIENT_LOG: Failed to connect to typer" << endl;
     
     int printerSocket = accept(clientSocket, NULL, NULL);
     if(typerSocket != -1)
-        cout << "Connected to printer" << endl;
+        if(LOG) cout << "CLIENT_LOG: Connected to printer" << endl;
     else
-        cout << "Failed to connect to printer" << endl;
+        if(LOG) cout << "CLIENT_LOG: Failed to connect to printer" << endl;
 
 
     //arrays to hold messeges sent by typer and receved from hub
@@ -110,21 +111,26 @@ int main(){
         const int result1 = recv(typerSocket, &sendingMessege, sizeof(sendingMessege), 0);
         if(result1 == -1)
         {
-            std::cout << "Error: " << errno << std::endl;
+            if(LOG) cout << "CLIENT_LOG: Error receiving messege from typer: " << errno << std::endl;
             break;
         }
 
         else if(result1 == 0)
         {
-            std::cout << "Disconnected" << std::endl;
+            if(LOG) cout << "CLIENT_LOG: Disconnected from typer" << std::endl;
             break;
         }
         else
         {
-            if(strcmp(sendingMessege, "fim") == 0)
-                break;
+            if(LOG) cout << "CLIENT_LOG: Received messege from typer:" << endl;
+            if(LOG) cout << "/t'" << sendingMessege << "'" << endl;
 
             send(hubSocket, sendingMessege, sizeof(sendingMessege), 0);
+
+            if(strcmp(sendingMessege, "fim") == 0){
+                if(LOG) cout << "CLIENT_LOG: Typer ordered client to shut down" << endl;
+                break;
+            }
         }
 
 
@@ -132,21 +138,26 @@ int main(){
         const int result2 = recv(hubSocket, &receivingMessege, sizeof(receivingMessege), 0);
         if(result2 == -1)
         {
-            std::cout << "Error: " << errno << std::endl;
+            if(LOG) cout << "CLIENT_LOG: Error receiving messege from hub: " << errno << std::endl;
             break;
         }
 
         else if(result2 == 0)
         {
-            std::cout << "Disconnected" << std::endl;
+            if(LOG) cout << "CLIENT_LOG: Disconnected from hub" << std::endl;
             break;
         }
         else
         {
-            if(strcmp(receivingMessege, "fim") == 0)
-                break;
+            if(LOG) cout << "CLIENT_LOG: Received messege from hub:" << endl;
+            if(LOG) cout << "/t'" << receivingMessege << "'" << endl;
 
             send(printerSocket, receivingMessege, sizeof(receivingMessege), 0);
+
+            if(strcmp(sendingMessege, "fim") == 0){
+                if(LOG) cout << "CLIENT_LOG: Hub ordered client to shut down" << endl;
+                break;
+            }
         }
     }
 
