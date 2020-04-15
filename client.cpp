@@ -7,14 +7,31 @@
 #include <sys/socket.h>
 
 #include <netinet/in.h>
+#include <fcntl.h>
+#include <signal.h>
 //#include <arpa/inet.h>
 
-#define SERVER_DOOR 9030
-#define LOG 0
+#define SERVER_DOOR 9033
+#define LOG 1
 
 using namespace std;
 
+static volatile int *hubSocketAddr = NULL;
+static volatile int *clientSocketAddr = NULL;
+
+void shutDown(int dummy){
+    
+    cout << endl << "Client shutting down\n";
+    shutdown(*hubSocketAddr, SHUT_RDWR);
+    shutdown(*clientSocketAddr, SHUT_RDWR);
+
+    exit(0);
+
+}
+
 int main(){
+
+    signal(SIGINT, shutDown);
 
     //define door (must be the same as Typer and Printer)
     cout << "State your door: ";
@@ -32,26 +49,13 @@ int main(){
             cout << "Invalid entry" << endl;
         }
     }
-
-    //Commands to connect to hub
-    cout << "Type 'y' to connect or 'n' to abort" << endl;
-
-    while(true)
-    {
-        char resp;
-
-        cin >> resp;
-
-        if(resp == 'y')
-            break;
-        else if(resp == 'n')
-            return 0;
-    }
     
 
     //create a socket connection to the "Hub"
     //program
     int hubSocket = socket(AF_INET, SOCK_STREAM, 0);
+
+    hubSocketAddr = &hubSocket;
 
     //setting the address struct to connect to "Hub"
     struct  sockaddr_in hub_address;
@@ -74,6 +78,8 @@ int main(){
     //create a socket to receive the "Typer"
     //and "Printer" connections
     int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
+
+    clientSocketAddr = &clientSocket;
 
     //setting the address struct to bind and way for printer and typer
     struct  sockaddr_in client_address;
@@ -100,19 +106,30 @@ int main(){
     else
         if(LOG) cout << "CLIENT_LOG: Failed to connect to printer" << endl;
 
+    //makes the socket non binding
+    fcntl(typerSocket, F_SETFL, O_NONBLOCK);
+    fcntl(printerSocket, F_SETFL, O_NONBLOCK);
+    fcntl(hubSocket, F_SETFL, O_NONBLOCK);
+
 
     //arrays to hold messeges sent by typer and receved from hub
     char sendingMessege[4096];
     char receivingMessege[4096];
 
+    int lastResult1 = -1;
+    int lastResult2 = -1;
+
     while(true)
     {
         //receives messeges from typer and sends them to hub
         const int result1 = recv(typerSocket, &sendingMessege, sizeof(sendingMessege), 0);
+
         if(result1 == -1)
         {
-            if(LOG) cout << "CLIENT_LOG: Error receiving messege from typer: " << errno << std::endl;
-            break;
+            if(errno != EAGAIN && errno != EWOULDBLOCK){
+                if(LOG) cout << "CLIENT_LOG: Error receiving messege from typer: " << errno << std::endl;
+                break;
+            }
         }
 
         else if(result1 == 0)
@@ -122,24 +139,29 @@ int main(){
         }
         else
         {
-            if(LOG) cout << "CLIENT_LOG: Received messege from typer:" << endl;
-            if(LOG) cout << "/t'" << sendingMessege << "'" << endl;
+            if(sendingMessege[0] != 0)
+            {
+                if(LOG) cout << "CLIENT_LOG: Received messege from typer:" << endl;
+                if(LOG) cout << "\t'" << sendingMessege << "'" << endl;
 
-            send(hubSocket, sendingMessege, sizeof(sendingMessege), 0);
+                send(hubSocket, sendingMessege, sizeof(sendingMessege), 0);
+            }
 
-            if(strcmp(sendingMessege, "fim") == 0){
+            if(strcmp(sendingMessege, "/quit") == 0){
                 if(LOG) cout << "CLIENT_LOG: Typer ordered client to shut down" << endl;
                 break;
             }
         }
 
-
         //receives messeges from hub and sends them to printer
         const int result2 = recv(hubSocket, &receivingMessege, sizeof(receivingMessege), 0);
+
         if(result2 == -1)
         {
-            if(LOG) cout << "CLIENT_LOG: Error receiving messege from hub: " << errno << std::endl;
-            break;
+            if(errno != EAGAIN && errno != EWOULDBLOCK){
+                if(LOG) cout << "CLIENT_LOG: Error receiving messege from hub: " << errno << std::endl;
+                break;
+            }
         }
 
         else if(result2 == 0)
@@ -150,11 +172,11 @@ int main(){
         else
         {
             if(LOG) cout << "CLIENT_LOG: Received messege from hub:" << endl;
-            if(LOG) cout << "/t'" << receivingMessege << "'" << endl;
+            if(LOG) cout << "\t'" << receivingMessege << "'" << endl;
 
             send(printerSocket, receivingMessege, sizeof(receivingMessege), 0);
 
-            if(strcmp(sendingMessege, "fim") == 0){
+            if(strcmp(sendingMessege, "/quit") == 0){
                 if(LOG) cout << "CLIENT_LOG: Hub ordered client to shut down" << endl;
                 break;
             }

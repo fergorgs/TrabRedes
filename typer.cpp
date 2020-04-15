@@ -7,17 +7,34 @@
 #include <sys/socket.h>
 
 #include <netinet/in.h>
+#include <fcntl.h>
+#include <signal.h>
 //#include <arpa/inet.h>
 
 #define LOG 0
 
 using namespace std;
 
+static volatile int *clientSocketAddr = NULL;
+
+void shutDown(int dummy){
+    
+    cout << endl << "Typer shutting down\n";
+    shutdown(*clientSocketAddr, SHUT_RDWR);
+
+    exit(0);
+
+}
+
 int main(){
+
+    signal(SIGINT, shutDown);
 
     //create a socket connection to the "Client"
     //program
     int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
+
+    clientSocketAddr = &clientSocket;
 
     //define door (must be the same as Client)
     cout << "State your door: ";
@@ -67,7 +84,7 @@ int main(){
 
         send(clientSocket, typerMessege, sizeof(typerMessege), 0);
 
-        if(strcmp(typerMessege, "fim") == 0){
+        if(strcmp(typerMessege, "/quit") == 0){
                if(LOG) cout << "TYPER_LOG: User ordered typer to shut down" << endl;
                break;
         }

@@ -7,16 +7,33 @@
 #include <sys/socket.h>
 
 #include <netinet/in.h>
+#include <fcntl.h>
+#include <signal.h>
 
 #define LOG 0
 
 using namespace std;
 
+static volatile int *clientSocketAddr = NULL;
+
+void shutDown(int dummy){
+    
+    cout << endl << "Printer shutting down\n";
+    shutdown(*clientSocketAddr, SHUT_RDWR);
+
+    exit(0);
+
+}
+
 int main(){
+
+    signal(SIGINT, shutDown);
 
     //create a socket connection to the "Client"
     //program
     int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
+
+    clientSocketAddr = &clientSocket;
 
     //define door (must be the same as Client)
     cout << "State your door: ";
@@ -78,13 +95,13 @@ int main(){
         }
         else
         {
-            if(strcmp(clientResponse, "fim") == 0){
+            if(strcmp(clientResponse, "/quit") == 0){
                 if(LOG) cout << "PRINTER_LOG: Client ordered printer to shut down" << endl;
                 break;
             }
 
             if(LOG) cout << "PRINTER_LOG: Received messege from client:" << endl;
-            if(LOG) cout << "/t'" << clientResponse << "'" << endl;
+            if(LOG) cout << "\t'" << clientResponse << "'" << endl;
 
             cout << "Typer says: " << clientResponse << endl;
         }
