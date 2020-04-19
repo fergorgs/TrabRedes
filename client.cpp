@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <iostream>
+//#include <iostream>
 #include <string.h>
 
 #include <sys/types.h>
@@ -9,9 +9,11 @@
 #include <netinet/in.h>
 #include <fcntl.h>
 #include <signal.h>
+
+#include "RFCprotocol.h"
 //#include <arpa/inet.h>
 
-#define SERVER_DOOR 9033
+#define SERVER_DOOR 9030
 #define LOG 1
 
 using namespace std;
@@ -34,9 +36,10 @@ int main(){
     signal(SIGINT, shutDown);
 
     //define door (must be the same as Typer and Printer)
-    cout << "State your door: ";
-
     int clientDoor;
+    string nick;
+
+    cout << "State your door: ";
 
     while(true){
         try
@@ -49,7 +52,10 @@ int main(){
             cout << "Invalid entry" << endl;
         }
     }
-    
+
+    cout << "Choose a nick name: ";
+
+    cin >> nick;
 
     //create a socket connection to the "Hub"
     //program
@@ -144,8 +150,21 @@ int main(){
                 if(LOG) cout << "CLIENT_LOG: Received messege from typer:" << endl;
                 if(LOG) cout << "\t'" << sendingMessege << "'" << endl;
 
-                send(hubSocket, sendingMessege, sizeof(sendingMessege), 0);
+                Messege msg = Messege();
+
+                msg.prefix.setNick(nick);
+                msg.command.setWord("/say");
+                msg.params.setTrailing(sendingMessege);
+
+                if(LOG) cout << "\t DEBUG DEBUG: ||" << msg.params.getTrailing() << "||" << endl;
+                
+                char serldMsg[4096];
+                
+                strcpy(serldMsg, msg.serializeMessege().c_str());
+
+                send(hubSocket, serldMsg, sizeof(serldMsg), 0);
             }
+
 
             if(strcmp(sendingMessege, "/quit") == 0){
                 if(LOG) cout << "CLIENT_LOG: Typer ordered client to shut down" << endl;
@@ -174,7 +193,13 @@ int main(){
             if(LOG) cout << "CLIENT_LOG: Received messege from hub:" << endl;
             if(LOG) cout << "\t'" << receivingMessege << "'" << endl;
 
-            send(printerSocket, receivingMessege, sizeof(receivingMessege), 0);
+            Messege msg = Messege(receivingMessege);
+
+            char deSerldMsg[4096];
+
+            strcpy(deSerldMsg, msg.params.getTrailing().c_str());
+
+            send(printerSocket, deSerldMsg, sizeof(deSerldMsg), 0);
 
             if(strcmp(sendingMessege, "/quit") == 0){
                 if(LOG) cout << "CLIENT_LOG: Hub ordered client to shut down" << endl;

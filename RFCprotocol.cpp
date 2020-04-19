@@ -1,7 +1,7 @@
 
 #include "RFCprotocol.h"
 
-using namespace std;
+
 
 
 //parseString
@@ -26,6 +26,8 @@ vector<string> parseString(string original, string del){
 }
 
 
+
+
 //Prefix
 //constructor of class Prefix
 Prefix::Prefix(){
@@ -35,6 +37,8 @@ Prefix::Prefix(){
     user = "";
     host = "";    
 }
+
+
 
 
 //Prefix::setters
@@ -76,11 +80,16 @@ int Prefix::setHost(string host){
         return -1;
 }
 
+
+
+
 //Prefix::getters
 string Prefix::getServerName() { return serverName; }
 string Prefix::getNick() { return nick; }
 string Prefix::getUser() { return user; }
 string Prefix::getHost() { return host; }
+
+
 
 
 //Command
@@ -90,6 +99,9 @@ Command::Command(){
     word = "";
     number = -1;
 }
+
+
+
 
 //Command::setters
 //return 0 if suceded
@@ -112,9 +124,14 @@ int Command::setNumber(int number){
         return -1;
 }
 
+
+
+
 //Command::getters
 string Command::getWord() { return word; }
 int Command::getNumber() { return number; }
+
+
 
 
 //Param
@@ -124,6 +141,9 @@ Param::Param(){
     middle = vector<string>();
     trailing = "";
 }
+
+
+
 
 //Param::addMiddleParam
 //given a string, ads it to the vector of middle params
@@ -175,9 +195,14 @@ int Param::setTrailing(string trailing){
     }
 }
 
+
+
+
 //Param::getters
 vector<string> Param::getMiddleContent() { return middle; }
 string Param::getTrailing() { return trailing; }
+
+
 
 
 //Messege()
@@ -189,11 +214,16 @@ Messege::Messege(){
     params = Param();
 }
 
+
+
+
 //Messege(serializedMessege)
 //constructs a Messege class starting from a given RFC messege
 Messege::Messege(string serializedMessege){
 
     string msg = serializedMessege;
+
+    int i = 0;
 
     //PARSING THE STRING
     string trailing = msg.substr(msg.find(" :")+1, msg.length()-(msg.find(" :")+1));
@@ -202,8 +232,8 @@ Messege::Messege(string serializedMessege){
     vector<string> segs = parseString(msg, " ");
     segs.push_back(trailing);
 
-    for(int i = 0; i < segs.size(); i++)
-        cout << "||" << segs[i] << "||" << endl;
+    /*for(int i = 0; i < segs.size(); i++)
+        cout << "||" << segs[i] << "||" << endl;*/
 
     //GET PREFIX
     if(segs[0][0] == ':')
@@ -230,21 +260,23 @@ Messege::Messege(string serializedMessege){
         //if there is nither user nor host
         else
             prefix.setNick(segs[0].substr(1, segs[0].length()-1));
+
+        i++;
     }
 
-
     //GET COMMAND
-    //if the command starts with a letter
-    if(isalpha(segs[1][0]))
-        command.setWord(segs[1]);
     //if the command is a number
+    if(isdigit(segs[i][0]))
+        command.setNumber(stoi(segs[i]));
+    //if the command starts with a letter
     else
-        command.setNumber(stoi(segs[1]));
+        command.setWord(segs[i]);
+
+    i++;
 
     
     //GET PARAMS
     //getting middle arguments
-    int i = 2;
     while (segs[i][0] != ':')
     {
         int res;
@@ -258,6 +290,8 @@ Messege::Messege(string serializedMessege){
     //getting trailing
     params.setTrailing(segs[i].substr(1, segs[i].length()-1));
 }
+
+
 
 
 //Messege:serializeMessege
@@ -301,12 +335,15 @@ string Messege::serializeMessege(){
 
 
     //MESSEGE TERMINATOR
-    string cr = "" + CR;
-    string lf = "" + LF;
-    finalMessege += (cr + lf);
+    string cr = "" + to_string(CR);
+    string lf = "" + to_string(LF);
+    //finalMessege += (" " + cr + lf);           <---------- ta bugado
 
     return finalMessege;
 }
+
+
+
 
 //Messege::listMessegeComponents
 //for debug purposes, lists the messege components
