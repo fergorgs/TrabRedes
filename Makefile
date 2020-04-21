@@ -8,4 +8,6 @@ run:
 	./app
 
 linux:
-	g++ ./src/main.cpp -o exec $(linuxlibs) -Wno-deprecated-declarations
+	g++ gui_client.cpp -o client $(linuxlibs) -Wno-deprecated-declarations
+	g++ hub.cpp -o hub
+	
