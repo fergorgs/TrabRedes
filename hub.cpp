@@ -10,7 +10,7 @@
 #include <fcntl.h>
 #include <signal.h>
 
-#define SERVER_DOOR 9033
+#define SERVER_DOOR 9030
 #define LOG 1
 
 using namespace std;
