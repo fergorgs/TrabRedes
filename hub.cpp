@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
+#include <unistd.h>
 #include <string.h>
 
 #include <sys/types.h>
@@ -20,7 +21,9 @@ static volatile int *hubSocketAddr = NULL;
 void shutDown(int dummy){
     
     cout << endl << "Hub shutting down\n";
+
     shutdown(*hubSocketAddr, SHUT_RDWR);
+    close(*hubSocketAddr);
 
     exit(0);
 
@@ -33,6 +36,13 @@ int main(){
     //create a socket to receive both
     //clients connections
     int hubSocket = socket(AF_INET, SOCK_STREAM, 0);
+    int opt = 1;
+
+    // reuse port and addr for server
+    if (setsockopt(hubSocket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
+        perror("socket failed"); 
+        exit(EXIT_FAILURE); 
+    }
 
     hubSocketAddr = &hubSocket;
 
@@ -69,8 +79,8 @@ int main(){
     char client1Messege[4096];
     char client2Messege[4096];
 
-    while(true)
-    {
+    while(true) {
+
         //receives messeges sent from client1 and sends them to client2
         const int result1 = recv(clientSocket_1, &client1Messege, sizeof(client1Messege), 0);
         if(result1 == -1)
@@ -101,6 +111,7 @@ int main(){
             //if(LOG) cout << "First letter: " << chara << endl;
 
             send(clientSocket_2, client1Messege, sizeof(client1Messege), 0);
+            send(clientSocket_1, client1Messege, sizeof(client1Messege), 0);
         }
 
 
@@ -130,6 +141,7 @@ int main(){
             if(LOG) cout << "\t'" << client2Messege << "'" << endl;
 
             send(clientSocket_1, client2Messege, sizeof(client2Messege), 0);
+            send(clientSocket_2, client2Messege, sizeof(client2Messege), 0);
         }
     }
 
@@ -138,6 +150,7 @@ int main(){
     cout << "Hub shutting down\n";
 
     shutdown(hubSocket, SHUT_RDWR);
+    close(hubSocket);
     
     return 0;
         

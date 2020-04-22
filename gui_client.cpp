@@ -19,7 +19,9 @@ static volatile int *hubSocketAddr = NULL;
 void shutDown(int dummy){
     
     std::cout << std::endl << "DISCONNECTED\n";
+	
     shutdown(*hubSocketAddr, SHUT_RDWR);
+    close(*hubSocketAddr);
 
     exit(0);
 
@@ -57,6 +59,7 @@ void receiver(Gtk::Label* chat_window, int hub) {
 			case 0:
 				if (LOG) 
 					std::cout << "CLIENT_LOG: Disconnected from HUB" << std::endl;
+					// kill client
 				break;
 			
 			case -1:
@@ -67,6 +70,7 @@ void receiver(Gtk::Label* chat_window, int hub) {
 			default:
 				std::string msg_str(msg);
 				chat_window->set_label(chat_window->get_label() + '\n' + msg_str);
+				std::cout << "CLIENT_LOG: Received message>" << msg_str << std::endl;
 		} 
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -151,6 +155,7 @@ int main() {
 
 
     shutdown(hub_socket, SHUT_RDWR);
+	close(hub_socket);
 
 	return 1337;
 }
