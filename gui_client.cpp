@@ -42,9 +42,17 @@ void sender(std::string& s, int hub) {
 	while(true) {
 		if (s.size()) {
 			// if there is msg, send it to the socket (server)
-			send(hub, s.c_str(), 4096, 0);
-			if (LOG) std::cout << "CLIENT_LOG: Sent to HUB> " << s << std::endl;
-			s.clear();
+			int i = 0;
+			while(true) {
+				std::cout << i;
+				send(hub, s.c_str() + i, 4096, 0);
+				if (LOG) std::cout << "CLIENT_LOG: Sent to HUB> " << (s.c_str() + i) << std::endl;
+				if(s.size() - i > 4096) i += 4096;
+				else {
+					s.clear();
+					break;
+				}
+			} 
 		}
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}
