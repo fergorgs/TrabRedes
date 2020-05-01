@@ -2,7 +2,7 @@
 This repository is internet relay chat project for SSC0142 course (ICMC - USP).
 
 ## How to Run
-**!!! THIS PROJECT HAS ONLY BEEN TESTED IN UBUNTU 19.10 & 20.04 !!!**
+**!!! THIS PROJECT HAS ONLY BEEN TESTED IN UBUNTU 18.04 & 19.10 & 20.04 !!!**
 
 ### Compilation
 * 1st step: Install gtkmm lib on your OS

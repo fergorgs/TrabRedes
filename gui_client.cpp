@@ -9,7 +9,6 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <sys/wait.h>
 
 #include "RFCprotocol.h"
 
@@ -18,7 +17,7 @@ using namespace std;
 #define SERVER_DOOR 9030
 #define LOG 1
 
-void sender(std::string& s, int hub_socket);
+void sender(std::string& s, int hub_socket, string nick);
 bool receiver(Gtk::Label* chat_window, int hub_socket);
 
 static volatile int *hubSocketAddr = NULL;
@@ -34,10 +33,10 @@ void shutDown(int dummy) {
 
 }
 
-void send_button_click(Gtk::TextBuffer* input_buffer, int hub_socket) {
+void send_button_click(Gtk::TextBuffer* input_buffer, int hub_socket, string nick) {
 	// send message to HUB
 	std::string message = input_buffer->get_text();
-	sender(std::ref(message), hub_socket);
+	sender(std::ref(message), hub_socket,nick);
 
 	input_buffer->set_text("");
 }
@@ -47,7 +46,7 @@ void set_scroll_label(Gtk::Allocation& alocator, Gtk::Adjustment* scroll_adjustm
 		scroll_adjustment->get_upper() - scroll_adjustment->get_page_size());
 }
 
-void sender(std::string& s, int hub) {
+void sender(std::string& s, int hub, string nick) {
 
 	if (s.size()) {
 		// if there is msg, send it to the socket (server)
@@ -61,7 +60,7 @@ void sender(std::string& s, int hub) {
 
 			Messege msg = Messege();
 
-			msg.prefix.setNick("");
+			msg.prefix.setNick(nick);
 			msg.command.setWord("/say");
 			msg.params.setTrailing(s.substr(i * 4000, 4000));
 			
@@ -87,24 +86,27 @@ bool receiver(Gtk::Label* chat_window, int hub_socket) {
 		if (res > 0) {
 			if (LOG) std::cout << "CLIENT_LOG: Message>" << msg << std::endl;
 
-			Messege msgStr = Messege(msg);
-            char deSerldMsg[4096];
-            strcpy(deSerldMsg, msgStr.params.getTrailing().c_str());
+			Messege msgObj = Messege(msg);
+            //char deSerldMsg[4096];
+			
+			string msg_str = msgObj.prefix.getNick() + ": " + msgObj.params.getTrailing();
+            //strcpy(deSerldMsg, temp.c_str());
 
-			std::string msg_str(deSerldMsg);
+			//std::string msg_str(deSerldMsg);
 			chat_window->set_label(chat_window->get_label() + '\n' + msg_str);
 
 			if (LOG) std::cout << "CLIENT_LOG: DeSerMsg>" << msg_str << std::endl;
 		} else {
-			if (res == 0)
-				std::cout << "CLIENT_LOG: Disconnected from HUB" << std::endl;
+			if (res == 0){
+				if (LOG) std::cout << "CLIENT_LOG: Disconnected from HUB" << std::endl;
+				exit(14);
+			}
 			if (res < 0 && errno != EAGAIN && errno != EWOULDBLOCK && LOG)
-				std::cout << "CLIENT_LOG: Error receiving messege from hub: " << errno << std::endl; 
+				if (LOG) std::cout << "CLIENT_LOG: Error receiving messege from hub: " << errno << std::endl; 
 
 			break;
 		}
 	}
-	
 
 	return true;
 }
@@ -140,6 +142,7 @@ int main() {
 
 	chat_label->set_line_wrap(true);
 	chat_label->set_line_wrap_mode(Pango::WrapMode::WRAP_WORD_CHAR);
+	chat_label->set_justify(Gtk::JUSTIFY_LEFT);
 
 	// END GUI
 
@@ -171,6 +174,21 @@ int main() {
 	// Non-blocking I/O flag is set
     fcntl(hub_socket, F_SETFL, O_NONBLOCK);
 
+	cout << "Insira um nick de até 20 caracteres" << endl;
+
+	string nick;
+
+	while(true){
+		cin >> nick;
+		
+
+		if(nick.size() > 20)
+			cout << "O nick não pode ser maior que 20 caracteres" << endl;
+		else
+			break;
+		
+	}
+
 	// END SOCKET
 
 
@@ -179,7 +197,7 @@ int main() {
 	// Setup all signals from GUI, to control read/write functions
 
 	// On button click, send message to HUB
-	send_button->signal_clicked().connect(sigc::bind(sigc::ptr_fun(&send_button_click), input_buffer.get(), hub_socket));
+	send_button->signal_clicked().connect(sigc::bind(sigc::ptr_fun(&send_button_click), input_buffer.get(), hub_socket, nick));
 
 	// Scroll to bottom on value change in label
 	chat_label->signal_size_allocate().connect_notify(sigc::bind(sigc::ptr_fun(&set_scroll_label), (scroll_adjustment.get())));
