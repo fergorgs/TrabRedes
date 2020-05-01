@@ -1,6 +1,7 @@
 #include <gtkmm.h>
 #include <iostream>
 #include <string>
+#include <stdio.h>
 
 #include <netinet/in.h>
 #include <fcntl.h>
@@ -8,6 +9,11 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/wait.h>
+
+#include "RFCprotocol.h"
+
+using namespace std;
 
 #define SERVER_DOOR 9030
 #define LOG 1
@@ -41,22 +47,32 @@ void set_scroll_label(Gtk::Allocation& alocator, Gtk::Adjustment* scroll_adjustm
 		scroll_adjustment->get_upper() - scroll_adjustment->get_page_size());
 }
 
-void sender(std::string& s, int hub_socket) {
+void sender(std::string& s, int hub) {
 
-	if (s.size()) {
-		// if there is msg, send it to the socket (server)
-		int i = 0;
-		while(true) {
-			std::cout << i;
-			send(hub_socket, s.c_str() + i, 4096, 0);
-			if (LOG) std::cout << "CLIENT_LOG: Sent to HUB> " << (s.c_str() + i) << std::endl;
-			if(s.size() - i > 4096) i += 4096;
-			else {
-				s.clear();
-				break;
+		if (s.size()) {
+			// if there is msg, send it to the socket (server)
+			//int i = 0;
+			int numOfMessages = s.size()/4000;
+			if(s.size()%4000) numOfMessages++;
+
+			if(LOG) cout << "CLIENT_LOG: num of messeges = " << numOfMessages << endl;
+
+			for(int i = 0; i < numOfMessages; i++){
+
+				Messege msg = Messege();
+
+				msg.prefix.setNick("");
+                msg.command.setWord("/say");
+                msg.params.setTrailing(s.substr(i*4000, 4000));
+				
+				char serldMsg[4096];
+                
+                strcpy(serldMsg, msg.serializeMessege().c_str());
+
+                send(hub, serldMsg, sizeof(serldMsg), 0);
 			}
-		} 
-	}
+			s.clear();
+		}
 }
 
 
@@ -67,7 +83,12 @@ bool receiver(Gtk::Label* chat_window, int hub_socket) {
 		int res = recv(hub_socket, &msg, 4096, 0);
 
 		if (res > 0) {
-			std::string msg_str(msg);
+
+			Messege msgStr = Messege(msg);
+            char deSerldMsg[4096];
+            strcpy(deSerldMsg, msgStr.params.getTrailing().c_str());
+
+			std::string msg_str(deSerldMsg);
 			chat_window->set_label(chat_window->get_label() + '\n' + msg_str);
 			std::cout << "CLIENT_LOG: Received message>" << msg_str << std::endl;
 		} else {
@@ -78,7 +99,9 @@ bool receiver(Gtk::Label* chat_window, int hub_socket) {
 
 			break;
 		}
+		//sleep(10);
 	}
+	
 
 	return true;
 }
