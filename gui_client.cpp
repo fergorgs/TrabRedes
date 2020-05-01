@@ -1,7 +1,7 @@
 #include <gtkmm.h>
 #include <iostream>
 #include <string>
-#include <stdio.h>
+#include <algorithm>
 
 #include <netinet/in.h>
 #include <fcntl.h>
@@ -12,31 +12,29 @@
 
 #include "RFCprotocol.h"
 
-using namespace std;
 
 #define SERVER_DOOR 9030
 #define LOG 1
 
-void sender(std::string& s, int hub_socket, string nick);
+void sender(std::string& send, int hub_socket, std::string& nick);
 bool receiver(Gtk::Label* chat_window, int hub_socket);
 
 static volatile int *hubSocketAddr = NULL;
 
 void shutDown(int dummy) {
-    
-    std::cout << std::endl << "DISCONNECTED\n";
-	
+		
     shutdown(*hubSocketAddr, SHUT_RDWR);
     close(*hubSocketAddr);
 
-    exit(0);
+    if (LOG) std::cout << "CLIENT_LOG: Disconnected from HUB" << std::endl;
 
+    exit(0);
 }
 
-void send_button_click(Gtk::TextBuffer* input_buffer, int hub_socket, string nick) {
+void send_button_click(Gtk::TextBuffer* input_buffer, int hub_socket, std::string& nick) {
 	// send message to HUB
-	std::string message = input_buffer->get_text();
-	sender(std::ref(message), hub_socket,nick);
+	std::string send = input_buffer->get_text();
+	sender(std::ref(send), hub_socket, nick);
 
 	input_buffer->set_text("");
 }
@@ -46,39 +44,44 @@ void set_scroll_label(Gtk::Allocation& alocator, Gtk::Adjustment* scroll_adjustm
 		scroll_adjustment->get_upper() - scroll_adjustment->get_page_size());
 }
 
-void sender(std::string& s, int hub, string nick) {
+void sender(std::string& send, int hub_socket, std::string& nick) {
 
-	if (s.size()) {
+	if (send.size()) {
 		// if there is msg, send it to the socket (server)
-		//int i = 0;
-		int numOfMessages = s.size()/4000;
-		if(s.size()%4000) numOfMessages++;
+		std::replace(send.begin(), send.end(), '\n', ' ');
+		std::replace(send.begin(), send.end(), '\r', ' ');
 
-		if(LOG) cout << "CLIENT_LOG: num of messeges = " << numOfMessages << endl;
+		int msg_num = send.size() / 4000;
+		if (send.size() % 4000) 
+			msg_num++;
 
-		for(int i = 0; i < numOfMessages; i++){
+		if (LOG) std::cout << "CLIENT_LOG: num of messeges = " << msg_num << std::endl;
+
+		for (int i = 0; i < msg_num; i++){
 
 			Messege msg = Messege();
 
 			msg.prefix.setNick(nick);
 			msg.command.setWord("/say");
-			msg.params.setTrailing(s.substr(i * 4000, 4000));
+			msg.params.setTrailing(send.substr(i * 4000, 4000));
 			
-			char serldMsg[4096];
+			char serld_msg[4096];
 			
-			strcpy(serldMsg, msg.serializeMessege().c_str());
+			strncpy(serld_msg, msg.serializeMessege().c_str(), 4096);
 
-			if (LOG) std::cout << "CLIENT_LOG: Msg" << i + 1 << ">" << serldMsg << std::endl;
+			if (LOG) std::cout << "CLIENT_LOG: Msg" << i + 1 << ">" << serld_msg << std::endl;
 
-			send(hub, serldMsg, sizeof(serldMsg), 0);
+			send(hub_socket, serld_msg, sizeof(serld_msg), 0);
 		}
-		s.clear();
+
+		send.clear();
 	}
 }
 
 
 bool receiver(Gtk::Label* chat_window, int hub_socket) {
-	while(true) {
+
+	while (true) {
 		// if receive data from socket, write in screen
 		char msg[4096];
 		int res = recv(hub_socket, &msg, 4096, 0);
@@ -87,21 +90,17 @@ bool receiver(Gtk::Label* chat_window, int hub_socket) {
 			if (LOG) std::cout << "CLIENT_LOG: Message>" << msg << std::endl;
 
 			Messege msgObj = Messege(msg);
-            //char deSerldMsg[4096];
-			
-			string msg_str = msgObj.prefix.getNick() + ": " + msgObj.params.getTrailing();
-            //strcpy(deSerldMsg, temp.c_str());
+			std::string msg_str = msgObj.prefix.getNick() + ": " + msgObj.params.getTrailing();
 
-			//std::string msg_str(deSerldMsg);
 			chat_window->set_label(chat_window->get_label() + '\n' + msg_str);
 
 			if (LOG) std::cout << "CLIENT_LOG: DeSerMsg>" << msg_str << std::endl;
 		} else {
 			if (res == 0){
 				if (LOG) std::cout << "CLIENT_LOG: Disconnected from HUB" << std::endl;
-				exit(14);
+				exit(2);
 			}
-			if (res < 0 && errno != EAGAIN && errno != EWOULDBLOCK && LOG)
+			if (res < 0 && errno != EAGAIN && errno != EWOULDBLOCK)
 				if (LOG) std::cout << "CLIENT_LOG: Error receiving messege from hub: " << errno << std::endl; 
 
 			break;
@@ -127,11 +126,11 @@ int main() {
 	Gtk::ScrolledWindow* chat_scroll;
 	auto input_buffer = Gtk::TextBuffer::create();
 
-	builder->get_widget("window", chat_window);
-	builder->get_widget("helloButton", send_button);
-	builder->get_widget("helloLabel", chat_label);
-	builder->get_widget("textView", text_input);
-	builder->get_widget("scrolled", chat_scroll);
+	builder->get_widget("chat_window", chat_window);
+	builder->get_widget("send_button", send_button);
+	builder->get_widget("chat_label", chat_label);
+	builder->get_widget("text_input", text_input);
+	builder->get_widget("chat_scroll", chat_scroll);
 
 	auto scroll_adjustment = chat_scroll->get_vadjustment();
 
@@ -164,32 +163,30 @@ int main() {
 
 	if (LOG) 
 		if (connection_status)
-			std::cout << "CLIENT_LOG: Failed to connect to hub" << std::endl;
+			if (LOG) std::cout << "CLIENT_LOG: Failed to connect to hub" << std::endl;
 		else 
-			std::cout << "CLIENT_LOG: Connected to hub" << std::endl;
+			if (LOG) std::cout << "CLIENT_LOG: Connected to hub" << std::endl;
 	
 	// If there is connection error, shutdown
-	if (connection_status) return -1;
+	if (connection_status) return 1;
 
 	// Non-blocking I/O flag is set
     fcntl(hub_socket, F_SETFL, O_NONBLOCK);
 
-	cout << "Insira um nick de até 20 caracteres" << endl;
-
-	string nick;
-
-	while(true){
-		cin >> nick;
-		
-
-		if(nick.size() > 20)
-			cout << "O nick não pode ser maior que 20 caracteres" << endl;
-		else
-			break;
-		
-	}
-
 	// END SOCKET
+
+
+
+	// BEGIN NICK
+
+	std::string nick;
+
+	do {
+		std::cout << "Insira um nick de até 20 caracteres" << std::endl;
+		std::cin >> nick;
+	} while (nick.size() > 20);
+
+	// END NICK
 
 
 
@@ -197,7 +194,7 @@ int main() {
 	// Setup all signals from GUI, to control read/write functions
 
 	// On button click, send message to HUB
-	send_button->signal_clicked().connect(sigc::bind(sigc::ptr_fun(&send_button_click), input_buffer.get(), hub_socket, nick));
+	send_button->signal_clicked().connect(sigc::bind(sigc::ptr_fun(&send_button_click), input_buffer.get(), hub_socket, std::ref(nick)));
 
 	// Scroll to bottom on value change in label
 	chat_label->signal_size_allocate().connect_notify(sigc::bind(sigc::ptr_fun(&set_scroll_label), (scroll_adjustment.get())));

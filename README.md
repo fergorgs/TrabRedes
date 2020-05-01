@@ -2,7 +2,8 @@
 This repository is internet relay chat project for SSC0142 course (ICMC - USP).
 
 ## How to Run
-**!!! THIS PROJECT HAS ONLY BEEN TESTED IN UBUNTU 18.04 & 19.10 & 20.04 !!!**
+**!!! THIS PROJECT HAS ONLY BEEN TESTED IN UBUNTU 18.04 & 19.10 & 20.04 !!!**  
+**!!! COMPILER USED IS g++ (Ubuntu 9.3.0-10ubuntu2) 9.3.0, WITH c++11 !!!**
 
 ### Compilation
 * 1st step: Install gtkmm lib on your OS
@@ -31,5 +32,14 @@ This repository is internet relay chat project for SSC0142 course (ICMC - USP).
         $ ./client
     ```
 
+    * As soon as the client is ran, the program will ask for a nickname to identify the messages.
+    * Then a window is open. In this window, on the top part all messages are shown and you can input your messages in the bottom left text area. To send the message, just click the "Send" button. As simple as that.
+
 ### Disclaimers
 * When either instance of the client is closed, the hub shuts down as well. This is due to the way we made the hub, for 2 and only 2 connections.
+
+
+## Group Members
+* Alexandre Galocha Pinto Junior (10734706) [git](https://github.com/alexandregjr)  
+* Eduardo Pirro (10734665) [git](https://github.com/EdPirro)  
+* Fernando Gorgulho Fayet (10734407) [git](https://github.com/fergorgs)
