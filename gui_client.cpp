@@ -1,6 +1,5 @@
 #include <gtkmm.h>
 #include <iostream>
-#include <thread>
 #include <string>
 
 #include <netinet/in.h>
@@ -13,10 +12,12 @@
 #define SERVER_DOOR 9030
 #define LOG 1
 
+void sender(std::string& s, int hub_socket);
+bool receiver(Gtk::Label* chat_window, int hub_socket);
 
 static volatile int *hubSocketAddr = NULL;
 
-void shutDown(int dummy){
+void shutDown(int dummy) {
     
     std::cout << std::endl << "DISCONNECTED\n";
 	
@@ -27,62 +28,59 @@ void shutDown(int dummy){
 
 }
 
-void on_helloButton_clicked(std::string& msg, Gtk::TextBuffer* buff) {
-	if (msg.size()) 
-		return;
-	msg = buff->get_text();
-	buff->set_text("");
+void send_button_click(Gtk::TextBuffer* input_buffer, int hub_socket) {
+	// send message to HUB
+	std::string message = input_buffer->get_text();
+	sender(std::ref(message), hub_socket);
+
+	input_buffer->set_text("");
 }
 
-void on_scrolled_size_allocate(Gtk::Allocation& alocator, Gtk::Adjustment* adj) {
-	adj->set_value(adj->get_upper() - adj->get_page_size());
+void set_scroll_label(Gtk::Allocation& alocator, Gtk::Adjustment* scroll_adjustment) {
+	scroll_adjustment->set_value(
+		scroll_adjustment->get_upper() - scroll_adjustment->get_page_size());
 }
 
-void sender(std::string& s, int hub) {
-	while(true) {
-		if (s.size()) {
-			// if there is msg, send it to the socket (server)
-			int i = 0;
-			while(true) {
-				std::cout << i;
-				send(hub, s.c_str() + i, 4096, 0);
-				if (LOG) std::cout << "CLIENT_LOG: Sent to HUB> " << (s.c_str() + i) << std::endl;
-				if(s.size() - i > 4096) i += 4096;
-				else {
-					s.clear();
-					break;
-				}
-			} 
-		}
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+void sender(std::string& s, int hub_socket) {
+
+	if (s.size()) {
+		// if there is msg, send it to the socket (server)
+		int i = 0;
+		while(true) {
+			std::cout << i;
+			send(hub_socket, s.c_str() + i, 4096, 0);
+			if (LOG) std::cout << "CLIENT_LOG: Sent to HUB> " << (s.c_str() + i) << std::endl;
+			if(s.size() - i > 4096) i += 4096;
+			else {
+				s.clear();
+				break;
+			}
+		} 
 	}
 }
 
-void receiver(Gtk::Label* chat_window, int hub) {
+
+bool receiver(Gtk::Label* chat_window, int hub_socket) {
 	while(true) {
 		// if receive data from socket, write in screen
 		char msg[4096];
-		int res = recv(hub, &msg, 4096, 0);
-		switch (res) {
-			case 0:
-				if (LOG) 
-					std::cout << "CLIENT_LOG: Disconnected from HUB" << std::endl;
-					// kill client
-				break;
-			
-			case -1:
-				if(errno != EAGAIN && errno != EWOULDBLOCK && LOG)
-					std::cout << "CLIENT_LOG: Error receiving messege from hub: " << errno << std::endl; 
-				break;
+		int res = recv(hub_socket, &msg, 4096, 0);
 
-			default:
-				std::string msg_str(msg);
-				chat_window->set_label(chat_window->get_label() + '\n' + msg_str);
-				std::cout << "CLIENT_LOG: Received message>" << msg_str << std::endl;
-		} 
+		if (res > 0) {
+			std::string msg_str(msg);
+			chat_window->set_label(chat_window->get_label() + '\n' + msg_str);
+			std::cout << "CLIENT_LOG: Received message>" << msg_str << std::endl;
+		} else {
+			if (res == 0)
+				std::cout << "CLIENT_LOG: Disconnected from HUB" << std::endl;
+			if (res < 0 && errno != EAGAIN && errno != EWOULDBLOCK && LOG)
+				std::cout << "CLIENT_LOG: Error receiving messege from hub: " << errno << std::endl; 
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			break;
+		}
 	}
+
+	return true;
 }
 
 int main() {
@@ -91,41 +89,36 @@ int main() {
     signal(SIGINT, shutDown);
 
 	// BEGIN GUI
+
 	auto app = Gtk::Application::create();
 	auto builder = Gtk::Builder::create_from_file("./ui/window.glade");
-	Gtk::Window* window;
-	Gtk::Button* button;
-	Gtk::Label* hlabel;
-	Gtk::TextView* tview;
-	Gtk::ScrolledWindow* scrolled;
-	Gtk::Viewport* viewport;
-	auto tbuffer = Gtk::TextBuffer::create();
+	Gtk::Window* chat_window;
+	Gtk::Button* send_button;
+	Gtk::Label* chat_label;
+	Gtk::TextView* text_input;
+	Gtk::ScrolledWindow* chat_scroll;
+	auto input_buffer = Gtk::TextBuffer::create();
 
-	builder->get_widget("window", window);
-	builder->get_widget("helloButton", button);
-	builder->get_widget("helloLabel", hlabel);
-	builder->get_widget("textView", tview);
-	builder->get_widget("scrolled", scrolled);
-	builder->get_widget("viewport", viewport);
+	builder->get_widget("window", chat_window);
+	builder->get_widget("helloButton", send_button);
+	builder->get_widget("helloLabel", chat_label);
+	builder->get_widget("textView", text_input);
+	builder->get_widget("scrolled", chat_scroll);
 
-	auto adj = scrolled->get_vadjustment();
+	auto scroll_adjustment = chat_scroll->get_vadjustment();
 
-	scrolled->set_placement(Gtk::CornerType::CORNER_BOTTOM_LEFT);
+	chat_scroll->set_placement(Gtk::CornerType::CORNER_BOTTOM_LEFT);
+	
+	text_input->set_buffer(input_buffer);
+	text_input->set_wrap_mode(Gtk::WrapMode::WRAP_WORD_CHAR);
 
-	hlabel->signal_size_allocate().connect_notify(sigc::bind(sigc::ptr_fun(&on_scrolled_size_allocate), (adj.get())));
-
-	tview->set_buffer(tbuffer);
-	tview->set_wrap_mode(Gtk::WrapMode::WRAP_WORD_CHAR);
-
-	std::string sent_msg = "";
-
-	button->signal_clicked().connect(sigc::bind(sigc::ptr_fun(&on_helloButton_clicked), std::ref(sent_msg), (tbuffer.get())));
 	// END GUI
 
 
 
 	// BEGIN SOCKET
-	// abertura do socket
+
+	// Socket opening
 	int hub_socket = socket(AF_INET, SOCK_STREAM, 0);
 	hubSocketAddr = &hub_socket;
 
@@ -143,27 +136,40 @@ int main() {
 		else 
 			std::cout << "CLIENT_LOG: Connected to hub" << std::endl;
 	
-	// se tiver erro na conexao fecha o programa
-	if (connection_status) return 0;
+	// If there is connection error, shutdown
+	if (connection_status) return -1;
 
-	// seta flag para I/O nao bloqueante
+	// Non-blocking I/O flag is set
     fcntl(hub_socket, F_SETFL, O_NONBLOCK);
+
 	// END SOCKET
 
 
 
-	// threads para comunicar socket com GUI
-	std::thread sender_t(sender, std::ref(sent_msg), hub_socket); // mandar como arg
-	std::thread receiver_t(receiver, hlabel, hub_socket); // mandar como arg
-	
-	app->run(*window);
+	// BEGIN SIGNALS
+	// Setup all signals from GUI, to control read/write functions
 
-	sender_t.join();
-	receiver_t.join();
+	// On button click, send message to HUB
+	send_button->signal_clicked().connect(sigc::bind(sigc::ptr_fun(&send_button_click), input_buffer.get(), hub_socket));
+
+	// Scroll to bottom on value change in label
+	chat_label->signal_size_allocate().connect_notify(sigc::bind(sigc::ptr_fun(&set_scroll_label), (scroll_adjustment.get())));
+
+	// Timeout to read attempt
+	Glib::signal_timeout().connect(sigc::bind<Gtk::Label*, int>(sigc::ptr_fun(&receiver), chat_label, hub_socket), 100);
+
+	// END SIGNALS
 
 
+
+	// RUN
+	app->run(*chat_window);
+
+
+
+	//SHUTDOWN
     shutdown(hub_socket, SHUT_RDWR);
 	close(hub_socket);
 
-	return 1337;
+	return 0;
 }

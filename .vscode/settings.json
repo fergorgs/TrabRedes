@@ -53,7 +53,9 @@
         "thread": "cpp",
         "list": "cpp",
         "map": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "set": "cpp",
+        "cinttypes": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled"
 }
