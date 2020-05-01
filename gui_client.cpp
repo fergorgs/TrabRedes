@@ -49,30 +49,32 @@ void set_scroll_label(Gtk::Allocation& alocator, Gtk::Adjustment* scroll_adjustm
 
 void sender(std::string& s, int hub) {
 
-		if (s.size()) {
-			// if there is msg, send it to the socket (server)
-			//int i = 0;
-			int numOfMessages = s.size()/4000;
-			if(s.size()%4000) numOfMessages++;
+	if (s.size()) {
+		// if there is msg, send it to the socket (server)
+		//int i = 0;
+		int numOfMessages = s.size()/4000;
+		if(s.size()%4000) numOfMessages++;
 
-			if(LOG) cout << "CLIENT_LOG: num of messeges = " << numOfMessages << endl;
+		if(LOG) cout << "CLIENT_LOG: num of messeges = " << numOfMessages << endl;
 
-			for(int i = 0; i < numOfMessages; i++){
+		for(int i = 0; i < numOfMessages; i++){
 
-				Messege msg = Messege();
+			Messege msg = Messege();
 
-				msg.prefix.setNick("");
-                msg.command.setWord("/say");
-                msg.params.setTrailing(s.substr(i*4000, 4000));
-				
-				char serldMsg[4096];
-                
-                strcpy(serldMsg, msg.serializeMessege().c_str());
+			msg.prefix.setNick("");
+			msg.command.setWord("/say");
+			msg.params.setTrailing(s.substr(i * 4000, 4000));
+			
+			char serldMsg[4096];
+			
+			strcpy(serldMsg, msg.serializeMessege().c_str());
 
-                send(hub, serldMsg, sizeof(serldMsg), 0);
-			}
-			s.clear();
+			if (LOG) std::cout << "CLIENT_LOG: Msg" << i + 1 << ">" << serldMsg << std::endl;
+
+			send(hub, serldMsg, sizeof(serldMsg), 0);
 		}
+		s.clear();
+	}
 }
 
 
@@ -83,6 +85,7 @@ bool receiver(Gtk::Label* chat_window, int hub_socket) {
 		int res = recv(hub_socket, &msg, 4096, 0);
 
 		if (res > 0) {
+			if (LOG) std::cout << "CLIENT_LOG: Message>" << msg << std::endl;
 
 			Messege msgStr = Messege(msg);
             char deSerldMsg[4096];
@@ -90,7 +93,8 @@ bool receiver(Gtk::Label* chat_window, int hub_socket) {
 
 			std::string msg_str(deSerldMsg);
 			chat_window->set_label(chat_window->get_label() + '\n' + msg_str);
-			std::cout << "CLIENT_LOG: Received message>" << msg_str << std::endl;
+
+			if (LOG) std::cout << "CLIENT_LOG: DeSerMsg>" << msg_str << std::endl;
 		} else {
 			if (res == 0)
 				std::cout << "CLIENT_LOG: Disconnected from HUB" << std::endl;
@@ -99,7 +103,6 @@ bool receiver(Gtk::Label* chat_window, int hub_socket) {
 
 			break;
 		}
-		//sleep(10);
 	}
 	
 
@@ -134,6 +137,9 @@ int main() {
 	
 	text_input->set_buffer(input_buffer);
 	text_input->set_wrap_mode(Gtk::WrapMode::WRAP_WORD_CHAR);
+
+	chat_label->set_line_wrap(true);
+	chat_label->set_line_wrap_mode(Pango::WrapMode::WRAP_WORD_CHAR);
 
 	// END GUI
 
