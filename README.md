@@ -37,6 +37,7 @@ This repository is internet relay chat project for SSC0142 course (ICMC - USP).
 
 ### Disclaimers
 * When either instance of the client is closed, the hub shuts down as well. This is due to the way we made the hub, for 2 and only 2 connections.
+* For now the threshold to break the message into parts is 4000 chars. This is due to addition of header data, such as the command used and user's nickname. In the next submissions, this size threshold may change to a bigger or smaller value, to avoid wasting space.
 
 
 ## Group Members

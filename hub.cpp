@@ -19,14 +19,12 @@ using namespace std;
 static volatile int *hubSocketAddr = NULL;
 
 void shutDown(int dummy){
-    
-    cout << endl << "Hub shutting down\n";
-
     shutdown(*hubSocketAddr, SHUT_RDWR);
     close(*hubSocketAddr);
 
-    exit(0);
+    if (LOG) cout << "HUB_LOG: Hub shutting down\n";
 
+    exit(0);
 }
 
 int main(){
@@ -58,6 +56,8 @@ int main(){
     //Hub is listening
     listen(hubSocket, 2);
 
+    if (LOG) cout << "HUB_LOG: Waiting for connections..." << endl;
+ 
     //accepts client1 and client2 connections, respectively
     int clientSocket_1 = accept(hubSocket, NULL, NULL);
     if(clientSocket_1 != -1)
@@ -79,6 +79,8 @@ int main(){
     char client1Messege[4096];
     char client2Messege[4096];
 
+    // main loop, always try to read from each client and send back the message to both clients
+    //  breaks when one of the connections is lost
     while(true) {
 
         //receives messeges sent from client1 and sends them to client2
@@ -105,10 +107,6 @@ int main(){
 
             if(LOG) cout << "HUB_LOG: Received messege from client1:" << endl;
             if(LOG) cout << "\t'" << client1Messege << "'" << endl;
-
-            //int chara = client1Messege[0];
-
-            //if(LOG) cout << "First letter: " << chara << endl;
 
             send(clientSocket_2, client1Messege, sizeof(client1Messege), 0);
             send(clientSocket_1, client1Messege, sizeof(client1Messege), 0);
@@ -147,10 +145,10 @@ int main(){
 
 
     //shuts down the hub socket
-    cout << "Hub shutting down\n";
-
     shutdown(hubSocket, SHUT_RDWR);
     close(hubSocket);
+    
+    if (LOG) cout << "HUB_LOG: Hub shutting down\n";
     
     return 0;
         

@@ -19,40 +19,70 @@
 void sender(std::string& send, int hub_socket, std::string& nick);
 bool receiver(Gtk::Label* chat_window, int hub_socket);
 
-static volatile int *hubSocketAddr = NULL;
+// Trim start of string
+std::string ltrim(const std::string& s) {
+	const std::string WHITESPACE = " \n\r\t\f\v";
+	size_t start = s.find_first_not_of(WHITESPACE);
+	return (start == std::string::npos) ? "" : s.substr(start);
+}
 
+// Trim end of string
+std::string rtrim(const std::string& s) {
+	const std::string WHITESPACE = " \n\r\t\f\v";
+	size_t end = s.find_last_not_of(WHITESPACE);
+	return (end == std::string::npos) ? "" : s.substr(0, end + 1);
+}
+
+// Trim string
+std::string trim(const std::string& s) {
+	return rtrim(ltrim(s));
+}
+
+// pointer to int that stores socket number (to close with sign. handl.)
+static volatile int *socket_ptr = NULL;
+
+// Signal Handler to kill socket on Ctrl+C (SIGINT)
 void shutDown(int dummy) {
 		
-    shutdown(*hubSocketAddr, SHUT_RDWR);
-    close(*hubSocketAddr);
+    shutdown(*socket_ptr, SHUT_RDWR);
+    close(*socket_ptr);
 
     if (LOG) std::cout << "CLIENT_LOG: Disconnected from HUB" << std::endl;
 
     exit(0);
 }
 
+// "OnClick" function, executed every time the "Send" button is clicked
 void send_button_click(Gtk::TextBuffer* input_buffer, int hub_socket, std::string& nick) {
 	// send message to HUB
 	std::string send = input_buffer->get_text();
+
+	send = trim(send);
 	sender(std::ref(send), hub_socket, nick);
 
 	input_buffer->set_text("");
 }
 
+// Called every time the label changes, to make sure that the scroll is always at bottom
 void set_scroll_label(Gtk::Allocation& alocator, Gtk::Adjustment* scroll_adjustment) {
 	scroll_adjustment->set_value(
 		scroll_adjustment->get_upper() - scroll_adjustment->get_page_size());
 }
 
-void sender(std::string& send, int hub_socket, std::string& nick) {
+// Function to send message to HUB
+// 	send_str - message to be sent
+// 	hub_socket - socket number (file) -- where to send the message
+// 	nick - nickname of the user
+void sender(std::string& send_str, int hub_socket, std::string& nick) {
 
-	if (send.size()) {
-		// if there is msg, send it to the socket (server)
-		std::replace(send.begin(), send.end(), '\n', ' ');
-		std::replace(send.begin(), send.end(), '\r', ' ');
+	if (send_str.size()) {
+		// if there is msg, send_str it to the socket (server)
+		std::replace(send_str.begin(), send_str.end(), '\n', ' ');
+		std::replace(send_str.begin(), send_str.end(), '\r', ' ');
 
-		int msg_num = send.size() / 4000;
-		if (send.size() % 4000) 
+		// break the message each 4000 chars (not 4096), to accommodate the headers of protocol
+		int msg_num = send_str.size() / 4000;
+		if (send_str.size() % 4000) 
 			msg_num++;
 
 		if (LOG) std::cout << "CLIENT_LOG: num of messeges = " << msg_num << std::endl;
@@ -63,7 +93,7 @@ void sender(std::string& send, int hub_socket, std::string& nick) {
 
 			msg.prefix.setNick(nick);
 			msg.command.setWord("/say");
-			msg.params.setTrailing(send.substr(i * 4000, 4000));
+			msg.params.setTrailing(send_str.substr(i * 4000, 4000));
 			
 			char serld_msg[4096];
 			
@@ -74,11 +104,13 @@ void sender(std::string& send, int hub_socket, std::string& nick) {
 			send(hub_socket, serld_msg, sizeof(serld_msg), 0);
 		}
 
-		send.clear();
+		send_str.clear();
 	}
 }
 
-
+// Function to reveive a message from the HUB (timeout handler, called each 100 milliseconds)
+// 	chat_window - where to add the message
+// 	hub_socket - socket number -- where to read from
 bool receiver(Gtk::Label* chat_window, int hub_socket) {
 
 	while (true) {
@@ -94,7 +126,6 @@ bool receiver(Gtk::Label* chat_window, int hub_socket) {
 
 			chat_window->set_label(chat_window->get_label() + '\n' + msg_str);
 
-			if (LOG) std::cout << "CLIENT_LOG: DeSerMsg>" << msg_str << std::endl;
 		} else {
 			if (res == 0){
 				if (LOG) std::cout << "CLIENT_LOG: Disconnected from HUB" << std::endl;
@@ -111,8 +142,6 @@ bool receiver(Gtk::Label* chat_window, int hub_socket) {
 }
 
 int main() {
-	//TODO: Modularizar codigo
-
     signal(SIGINT, shutDown);
 
 	// BEGIN GUI
@@ -151,7 +180,7 @@ int main() {
 
 	// Socket opening
 	int hub_socket = socket(AF_INET, SOCK_STREAM, 0);
-	hubSocketAddr = &hub_socket;
+	socket_ptr = &hub_socket;
 
 
 	struct  sockaddr_in hub_address;
