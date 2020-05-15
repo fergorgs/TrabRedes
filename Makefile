@@ -2,10 +2,12 @@ libs = -pthread -I/usr/include/gtkmm-3.0 -I/usr/lib/x86_64-linux-gnu/gtkmm-3.0/i
 version = -std=c++11
 
 all:
-	g++ -o client gui_client.cpp RFCprotocol.cpp $(libs) $(version) -Wno-deprecated-declarations 
-	g++ hub.cpp -o hub $(version)
+	g++ -o app client/app.cpp client/Client.cpp utils/RFCprotocol.cpp  $(libs) $(version) -Wno-deprecated-declarations 
+	g++ server/hub.cpp -o hub $(version)
 
-run:
+client:
 	./app
 	
+server:
+	./hub
 	

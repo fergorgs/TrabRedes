@@ -10,7 +10,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-#include "RFCprotocol.h"
+#include "../utils/RFCprotocol.h"
 
 
 #define SERVER_DOOR 9030
@@ -153,7 +153,7 @@ int main() {
 	Gtk::Label* chat_label;
 	Gtk::TextView* text_input;
 	Gtk::ScrolledWindow* chat_scroll;
-	auto input_buffer = Gtk::TextBuffer::create();
+	Glib::RefPtr<Gtk::TextBuffer> input_buffer = Gtk::TextBuffer::create();
 
 	builder->get_widget("chat_window", chat_window);
 	builder->get_widget("send_button", send_button);
