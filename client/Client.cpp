@@ -11,6 +11,8 @@
 #include <sys/socket.h>
 
 #include "../utils/RFCprotocol.h"
+#include "Executors.h"
+#include "Handlers.h"
 
 #define SERVER_DOOR 9030
 #define LOG 1
@@ -73,6 +75,7 @@ void Client::create_connection() {
     connected = true;
 }
 
+// change to receive N messages & send to HUB
 void Client::sender(std::string& str) {
     if (str.size()) {
 		// if there is msg, str it to the socket (server)
@@ -107,60 +110,24 @@ void Client::sender(std::string& str) {
 
 void Client::parse_command(std::string& str) {
     if (str[0] == '/') {
-        size_t fst_space = str.find(" ");
-        std::string cmd = trim(str.substr(1, fst_space - 1));
-        
-        if (cmd == "connect") {
-            if (nickname.empty()) {
-                chat_label->set_label(chat_label->get_label() + "\nERROR: You need to choose a nickname first.\n\tUse: /nick <nickname>");
-                return;
-            }
+        size_t arg0 = str.find(" ");
+        std::string cmd = trim(str.substr(1, arg0));
 
-            create_connection();
-            return;
-        } 
-        if (cmd == "ping") {
-            // send ping wait for pong
-        } 
-        if (cmd == "nick") {
-            if (fst_space == string::npos) {
-                chat_label->set_label(chat_label->get_label() + "\nERROR: Usage is /nick <nickname>");
-                return;
-            }
+        std::string args = "";
+        if (arg0 != std::string::npos) 
+            args = trim(str.substr(arg0 + 1));
 
-            size_t snd_space = str.find(" ", fst_space + 1);
-            std::string new_nick = str.substr(fst_space + 1, snd_space - fst_space);
+        if (executors.count(cmd) > 0)
+            executors[cmd](this, std::ref(args));
+        else
+            add_text("ERROR: It seems like this command doesn't exist.");
 
-
-            if (new_nick.size() > 20) {
-                chat_label->set_label(chat_label->get_label() + "\nERROR: Nickname must have less than 20 chars");
-                return;
-            }
-
-            if (!connected) 
-                nickname = new_nick;
-            else
-                // make request to change nickname 
-                // change_nick();
-                nickname = new_nick;
-
-
-            chat_label->set_label(chat_label->get_label() + "\nNickname is set to " + nickname);
-            return;
-        } 
-        if (cmd == "quit") {
-            quit(); // dont need return, has exit() inside
-        }
-
-        chat_label->set_label(chat_label->get_label() + "\nERROR: It seems like this command doesn't exists.");
-        return;
-        
     } else {
-        sender(str);
+        executors["say"](this, str);
     }
 }
 
-void Client::send_button_handler() {
+void Client::send_button_click() {
     std::string str = input_buffer->get_text();
 
     std::replace(str.begin(), str.end(), '\n', ' ');
@@ -191,6 +158,9 @@ bool Client::receiver() {
 			if (LOG) std::cout << "CLIENT_LOG: Message (" << msg << ")" << std::endl;
 
 			Messege msgObj = Messege(msg);
+
+            // parse msg type (Handlers)
+
 			std::string msg_str = msgObj.prefix.getNick() + ": " + msgObj.params.getTrailing();
 
 			chat_label->set_label(chat_label->get_label() + '\n' + msg_str);
@@ -250,19 +220,29 @@ Client::Client() {
 	chat_label->set_justify(Gtk::JUSTIFY_LEFT);
 
 	// On button click, send message to HUB
-	send_button->signal_clicked().connect(sigc::mem_fun(*this, &Client::send_button_handler));
+	send_button->signal_clicked().connect(sigc::mem_fun(*this, &Client::send_button_click));
 
 	// Scroll to bottom on value change in label
 	chat_label->signal_size_allocate().connect_notify(sigc::mem_fun(*this, &Client::auto_scroll));
 
 	// Timeout to read attempt
 	Glib::signal_timeout().connect(sigc::mem_fun(*this, &Client::receiver), 100);
+
+    // Setup executors
+    executors["quit"] = Executors::quit_executor;
+    executors["connect"] = Executors::connect_executor;
+    executors["nick"] = Executors::nick_executor;
+    executors["ping"] = Executors::ping_executor;
+    executors["say"] = Executors::say_executor;
 }
 
 Gtk::Window& Client::get_window() {
     return *chat_window;
 }
 
+void Client::add_text(std::string text) {
+    chat_label->set_label(chat_label->get_label() + '\n' + text);
+}
 
 Client::~Client() {
     shutdown(hub_socket, SHUT_RDWR);
