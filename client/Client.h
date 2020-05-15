@@ -20,6 +20,9 @@ class Client {
         bool connected;
 
         void create_connection();
+        void sender(std::string& str);
+        void parse_command(std::string& str);
+        void quit();
 
         // signal handlers
         void send_button_handler();

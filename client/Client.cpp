@@ -44,7 +44,6 @@ std::string trim(const std::string& s) {
 
 // Private functions
 void Client::create_connection() {
-    
     // Socket opening
     hub_socket = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -61,26 +60,26 @@ void Client::create_connection() {
         if (LOG) std::cout << "CLIENT_LOG: Connected to hub" << std::endl;
 	
 	// If there is connection error, shutdown
-	if (connection_status) exit(1);
-
+	if (connection_status) {
+        chat_label->set_label(chat_label->get_label() + "\nERROR: Failed to connect (" + to_string(connection_status) + ").");
+        return; // exit(1);
+    }
 	// Non-blocking I/O flag is set
     fcntl(hub_socket, F_SETFL, O_NONBLOCK);
+
+    // set nickname on connection
+    // change_nick();
+
+    connected = true;
 }
 
-
-void Client::send_button_handler() {
-    std::string str_msg = input_buffer->get_text();
-
-	str_msg = trim(str_msg);
-
-    if (str_msg.size()) {
-		// if there is msg, str_msg it to the socket (server)
-		std::replace(str_msg.begin(), str_msg.end(), '\n', ' ');
-		std::replace(str_msg.begin(), str_msg.end(), '\r', ' ');
+void Client::sender(std::string& str) {
+    if (str.size()) {
+		// if there is msg, str it to the socket (server)
 
 		// break the message each 4000 chars (not 4096), to accommodate the headers of protocol
-		int msg_num = str_msg.size() / 4000;
-		if (str_msg.size() % 4000) 
+		int msg_num = str.size() / 4000;
+		if (str.size() % 4000) 
 			msg_num++;
 
 		if (LOG) std::cout << "CLIENT_LOG: num of messeges = " << msg_num << std::endl;
@@ -91,7 +90,7 @@ void Client::send_button_handler() {
 
 			msg.prefix.setNick(nickname);
 			msg.command.setWord("/say");
-			msg.params.setTrailing(str_msg.substr(i * 4000, 4000));
+			msg.params.setTrailing(str.substr(i * 4000, 4000));
 			
 			char serld_msg[4096];
 			
@@ -102,8 +101,74 @@ void Client::send_button_handler() {
 			send(hub_socket, serld_msg, sizeof(serld_msg), 0);
 		}
 
-		str_msg.clear();
+		str.clear();
 	}
+}
+
+void Client::parse_command(std::string& str) {
+    if (str[0] == '/') {
+        size_t fst_space = str.find(" ");
+        std::string cmd = trim(str.substr(1, fst_space - 1));
+        
+        if (cmd == "connect") {
+            if (nickname.empty()) {
+                chat_label->set_label(chat_label->get_label() + "\nERROR: You need to choose a nickname first.\n\tUse: /nick <nickname>");
+                return;
+            }
+
+            create_connection();
+            return;
+        } 
+        if (cmd == "ping") {
+            // send ping wait for pong
+        } 
+        if (cmd == "nick") {
+            if (fst_space == string::npos) {
+                chat_label->set_label(chat_label->get_label() + "\nERROR: Usage is /nick <nickname>");
+                return;
+            }
+
+            size_t snd_space = str.find(" ", fst_space + 1);
+            std::string new_nick = str.substr(fst_space + 1, snd_space - fst_space);
+
+
+            if (new_nick.size() > 20) {
+                chat_label->set_label(chat_label->get_label() + "\nERROR: Nickname must have less than 20 chars");
+                return;
+            }
+
+            if (!connected) 
+                nickname = new_nick;
+            else
+                // make request to change nickname 
+                // change_nick();
+                nickname = new_nick;
+
+
+            chat_label->set_label(chat_label->get_label() + "\nNickname is set to " + nickname);
+            return;
+        } 
+        if (cmd == "quit") {
+            quit(); // dont need return, has exit() inside
+        }
+
+        chat_label->set_label(chat_label->get_label() + "\nERROR: It seems like this command doesn't exists.");
+        return;
+        
+    } else {
+        sender(str);
+    }
+}
+
+void Client::send_button_handler() {
+    std::string str = input_buffer->get_text();
+
+    std::replace(str.begin(), str.end(), '\n', ' ');
+    std::replace(str.begin(), str.end(), '\r', ' ');
+
+	str = trim(str);
+
+    parse_command(std::ref(str));
 
 	input_buffer->set_text("");
 }
@@ -115,13 +180,15 @@ void Client::auto_scroll(Gtk::Allocation& alocator) {
 
 // Function to reveive a message from the HUB (timeout handler, called each 100 milliseconds)
 bool Client::receiver() {
+    if (!connected) return true;
+
     while (true) {
 		// if receive data from socket, write in screen
 		char msg[4096];
 		int res = recv(hub_socket, &msg, 4096, 0);
 
 		if (res > 0) {
-			if (LOG) std::cout << "CLIENT_LOG: Message>" << msg << std::endl;
+			if (LOG) std::cout << "CLIENT_LOG: Message (" << msg << ")" << std::endl;
 
 			Messege msgObj = Messege(msg);
 			std::string msg_str = msgObj.prefix.getNick() + ": " + msgObj.params.getTrailing();
@@ -136,7 +203,7 @@ bool Client::receiver() {
 				exit(2);
 			}
 			if (res < 0 && errno != EAGAIN && errno != EWOULDBLOCK)
-				if (LOG) std::cout << "CLIENT_LOG: Error receiving messege from hub: " << errno << std::endl; 
+				if (LOG) std::cout << "CLIENT_LOG: Error receiving messege from hub (" << errno << ")" << std::endl; 
 
 			break;
 		}
@@ -145,8 +212,23 @@ bool Client::receiver() {
 	return true;
 }
 
+void Client::quit() {
+    if (connected) {
+        shutdown(hub_socket, SHUT_RDWR);
+        close(hub_socket);
+    }
+
+    if (LOG) std::cout << "CLIENT_LOG: Disconnected from HUB" << std::endl;
+    if (LOG) std::cout << "CLIENT_LOG: Shutting Client down" << std::endl;
+
+    exit(0);
+}
+
 // Public functions
 Client::Client() {
+    nickname = "";
+    connected = false;
+
     auto builder = Gtk::Builder::create_from_file("./client/ui/window.glade");
 
 	builder->get_widget("chat_window", chat_window);
@@ -175,15 +257,12 @@ Client::Client() {
 
 	// Timeout to read attempt
 	Glib::signal_timeout().connect(sigc::mem_fun(*this, &Client::receiver), 100);
-
-    nickname = "dummy";
-
-    create_connection();
 }
 
 Gtk::Window& Client::get_window() {
     return *chat_window;
 }
+
 
 Client::~Client() {
     shutdown(hub_socket, SHUT_RDWR);

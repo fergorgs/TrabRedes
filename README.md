@@ -19,17 +19,18 @@ This repository is internet relay chat project for SSC0142 course (ICMC - USP).
     ```
 
 ### Running
+<!-- CHANGE, DOESNT HAVE TO OPEN HUB FIRST MORE -->
 * 1st step: run the hub
     * It is important to run the hub first, given that the client needs to connect to the server (hub); if it isn't open, the client won't open either.
     ```
-        $ ./hub
+        $ make server
     ```
 
 * 2nd & 3rd steps: run 2 client instances
     * After running the server (hub), you need to run 2 instances of the client mandatorily. As long as there are less than 2 client instances, the hub is stuck waiting for 2 connections. 
     ```
-        $ ./client
-        $ ./client
+        $ make client
+        $ make client
     ```
 
     * As soon as the client is ran, the program will ask for a nickname to identify the messages.
