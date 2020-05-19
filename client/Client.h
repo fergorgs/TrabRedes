@@ -2,6 +2,8 @@
 #include <string>
 #include <map>
 
+#include "../utils/RFCprotocol.h"
+
 #ifndef CLIENT_H
 #define CLIENT_H
 
@@ -23,7 +25,7 @@ class Client {
 
         int hub_socket;
 
-        void sender(std::string& str);
+        // void sender(std::string& str);
         void parse_command(std::string& str);
 
         // signal handlers
@@ -41,6 +43,8 @@ class Client {
         void add_text(std::string text);
         void quit();
         void create_connection();
+
+        void send_message(Message* msg);
 
         ~Client();
 };

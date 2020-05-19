@@ -69,43 +69,15 @@ void Client::create_connection() {
 	// Non-blocking I/O flag is set
     fcntl(hub_socket, F_SETFL, O_NONBLOCK);
 
-    // set nickname on connection
-    // change_nick();
-
     connected = true;
 }
 
-// change to receive N messages & send to HUB
-void Client::sender(std::string& str) {
-    if (str.size()) {
-		// if there is msg, str it to the socket (server)
+void Client::send_message(Message* msg) {
+	std::string serialized_msg = msg->serializeMessage();
 
-		// break the message each 4000 chars (not 4096), to accommodate the headers of protocol
-		int msg_num = str.size() / 4000;
-		if (str.size() % 4000) 
-			msg_num++;
+	if (LOG) std::cout << "CLIENT_LOG: Sending >" << serialized_msg << std::endl;
 
-		if (LOG) std::cout << "CLIENT_LOG: num of messeges = " << msg_num << std::endl;
-
-		for (int i = 0; i < msg_num; i++){
-
-			Messege msg = Messege();
-
-			msg.prefix.setNick(nickname);
-			msg.command.setWord("/say");
-			msg.params.setTrailing(str.substr(i * 4000, 4000));
-			
-			char serld_msg[4096];
-			
-			strncpy(serld_msg, msg.serializeMessege().c_str(), 4096);
-
-			if (LOG) std::cout << "CLIENT_LOG: Msg" << i + 1 << ">" << serld_msg << std::endl;
-
-			send(hub_socket, serld_msg, sizeof(serld_msg), 0);
-		}
-
-		str.clear();
-	}
+	send(hub_socket, serialized_msg.c_str(), 4096, 0);
 }
 
 void Client::parse_command(std::string& str) {
@@ -151,13 +123,15 @@ bool Client::receiver() {
 
     while (true) {
 		// if receive data from socket, write in screen
-		char msg[4096];
-		int res = recv(hub_socket, &msg, 4096, 0);
+		char c_msg[4096];
+		int res = recv(hub_socket, &c_msg, 4096, 0);
+
+		std::string msg(c_msg);
 
 		if (res > 0) {
 			if (LOG) std::cout << "CLIENT_LOG: Message (" << msg << ")" << std::endl;
 
-			Messege msgObj = Messege(msg);
+			Message msgObj = Message(std::ref(msg));
 
             // parse msg type (Handlers)
 

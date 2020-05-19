@@ -5,6 +5,9 @@
 
 using namespace std;
 
+#ifndef RFC_PROTOCOL_H
+#define RFC_PROTOCOL_H
+
 #define NUL 0
 #define LF 10
 #define CR 13
@@ -77,7 +80,7 @@ class Param{
 };
 
 
-class Messege{
+class Message{
 
     public:
     
@@ -85,11 +88,13 @@ class Messege{
     Command command;
     Param params;
 
-    Messege();
+    Message();
 
-    Messege(string serializedMessege);
+    Message(string& serializedMessage);
     
-    string serializeMessege();
+    string serializeMessage();
 
-    void listMessegeComponents();
+    void listMessageComponents();
 };
+
+#endif

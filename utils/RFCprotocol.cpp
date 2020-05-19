@@ -205,9 +205,9 @@ string Param::getTrailing() { return trailing; }
 
 
 
-//Messege()
-//constructs an empty Messege class
-Messege::Messege(){
+//Message()
+//constructs an empty Message class
+Message::Message(){
 
     prefix = Prefix();
     command = Command();
@@ -217,11 +217,11 @@ Messege::Messege(){
 
 
 
-//Messege(serializedMessege)
-//constructs a Messege class starting from a given RFC messege
-Messege::Messege(string serializedMessege){
+//Message(serializedMessage)
+//constructs a Message class starting from a given RFC Message
+Message::Message(string& serializedMessage){
 
-    string msg = serializedMessege;
+    string msg = serializedMessage;
 
     int i = 0;
 
@@ -294,60 +294,60 @@ Messege::Messege(string serializedMessege){
 
 
 
-//Messege:serializeMessege
-//RETURNS the content of the messege serialized and ready to transmit
-string Messege::serializeMessege(){
+//Message:serializeMessage
+//RETURNS the content of the Message serialized and ready to transmit
+string Message::serializeMessage(){
 
-    string finalMessege = "";
+    string finalMessage = "";
 
     //PREFIX
     //Checks to see if there is a prefix at all
     if(prefix.getServerName() != "")
-        finalMessege = ":" + prefix.getServerName() + " ";
+        finalMessage = ":" + prefix.getServerName() + " ";
 
     else if(prefix.getNick() != "")
     {
-        finalMessege = ":" + prefix.getNick();
+        finalMessage = ":" + prefix.getNick();
 
         if(prefix.getUser() != "")
-            finalMessege += "!" + prefix.getUser();
+            finalMessage += "!" + prefix.getUser();
         if(prefix.getHost() != "")
-            finalMessege += "@" + prefix.getHost();
+            finalMessage += "@" + prefix.getHost();
 
-        finalMessege += " ";
+        finalMessage += " ";
     }
 
 
     //COMMAND
     //Checks if the command is written or numeric
     if(command.getWord() != "")
-        finalMessege += (command.getWord() + " ");
+        finalMessage += (command.getWord() + " ");
     else
-        finalMessege += (to_string(command.getNumber()) + " ");
+        finalMessage += (to_string(command.getNumber()) + " ");
     
     
     //PARAMS
 
     for(int i = 0; i < params.getMiddleContent().size(); i++)
-        finalMessege += (params.getMiddleContent()[i] + " ");
+        finalMessage += (params.getMiddleContent()[i] + " ");
 
-    finalMessege += (":" + params.getTrailing());
+    finalMessage += (":" + params.getTrailing());
 
 
-    //MESSEGE TERMINATOR
+    //Message TERMINATOR
     string cr = "" + to_string(CR);
     string lf = "" + to_string(LF);
-    //finalMessege += (" " + cr + lf);           <---------- ta bugado
+    //finalMessage += (" " + cr + lf);           <---------- ta bugado
 
-    return finalMessege;
+    return finalMessage;
 }
 
 
 
 
-//Messege::listMessegeComponents
-//for debug purposes, lists the messege components
-void Messege::listMessegeComponents(){
+//Message::listMessageComponents
+//for debug purposes, lists the Message components
+void Message::listMessageComponents(){
 
     cout << "PREFIX" << endl;
 
@@ -376,5 +376,5 @@ void Messege::listMessegeComponents(){
 
     cout << "Trailing: " << params.getTrailing() << endl;
 
-    cout << "---END OF MESSEGE---" << endl << endl;
+    cout << "---END OF MESSAGE---" << endl << endl;
 }
