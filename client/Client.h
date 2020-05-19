@@ -26,7 +26,6 @@ class Client {
         int hub_socket;
 
         // void sender(std::string& str);
-        void parse_command(std::string& str);
 
         // signal handlers
         void send_button_click();
@@ -40,9 +39,10 @@ class Client {
         Client();
         
         Gtk::Window& get_window();
-        void add_text(std::string text);
+        // void add_text(std::string text);
         void quit();
         void create_connection();
+        void parse_command(std::string& str);
 
         void send_message(Message* msg);
 

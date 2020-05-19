@@ -1,6 +1,7 @@
 #include "Executors.h"
 #include "Client.h"
 #include "../utils/RFCprotocol.h"
+#include "ui/Screen.h"
 
 #include <vector>
 #include <iostream>
@@ -9,12 +10,11 @@
 
 void Executors::connect_executor(Client* client, std::string& text) {
     if (client->connected) {
-        client->add_text("ERROR: You are already connected.");
+        Screen::log_message("You are already connected.", Screen::LogType::ERROR);
         return;
     }
 
     client->create_connection();
-    client->add_text("You are connected.");
 }
 
 void Executors::ping_executor(Client* client, std::string& text) {
@@ -23,12 +23,12 @@ void Executors::ping_executor(Client* client, std::string& text) {
 
 void Executors::nick_executor(Client* client, std::string& text) {
     if (!client->connected) {
-        client->add_text("ERROR: Connect to server to change your nick (/connect).");
+        Screen::log_message("Connect to server to change your nick (/connect).", Screen::LogType::ERROR);
         return;
     }
 
     if (text.size() == 0) {
-        client->add_text("ERROR: Usage is /nick <nickname>");
+        Screen::log_message("Usage is /nick <nickname>", Screen::LogType::ERROR);
         return;
     }
 
@@ -36,7 +36,7 @@ void Executors::nick_executor(Client* client, std::string& text) {
     std::string new_nick = text.substr(0, arg1);
 
     if (new_nick.size() > 20) {
-        client->add_text("ERROR: Nickname must have less than 20 chars");
+        Screen::log_message("Nickname must have less than 20 chars.", Screen::LogType::ERROR);
         return;
     }
 
@@ -44,7 +44,7 @@ void Executors::nick_executor(Client* client, std::string& text) {
     // client->change_nick(new_nick);
     client->nickname = new_nick;
 
-    client->add_text("Nickname is set to " + client->nickname);
+    Screen::log_message("Nickname is set to " + client->nickname, Screen::LogType::SUCCESS);
 }
 
 void Executors::quit_executor(Client* client, std::string& text) {
@@ -52,6 +52,11 @@ void Executors::quit_executor(Client* client, std::string& text) {
 }
 
 void Executors::say_executor(Client* client, std::string& text) {
+    if (!client->connected) {
+        Screen::log_message("You need to be connected to do this.", Screen::LogType::ERROR);
+        return;
+    }
+
     for (int i = 0; i * MSG_TRUNC < text.size(); i++) {
         Message* msg = new Message();
 
