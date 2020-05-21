@@ -12,8 +12,11 @@
 #include <netinet/in.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <memory>
+#include <functional>
 
 #include "Connection.h"
+#include "Message.h"
 
 #ifndef HUB_H
 #define HUB_H
@@ -26,9 +29,10 @@ class Hub {
         bool alive;
         void waitConnection();
         void IOConnections();
-        std::list<Connection> connections;
+        std::list<std::unique_ptr<Connection>> connections;
     public:
         Hub();
+        void run(int);
         ~Hub();
         
 };
