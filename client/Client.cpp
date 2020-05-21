@@ -2,7 +2,7 @@
 #include <gtkmm.h>
 #include <iostream>
 #include <string>
-#include <algorithm>
+// #include <algorithm>
 
 #include <netinet/in.h>
 #include <fcntl.h>
@@ -11,38 +11,14 @@
 #include <sys/socket.h>
 
 #include "../utils/RFCprotocol.h"
+#include "../utils/StrManip.h"
 #include "Executors.h"
 #include "Handlers.h"
+#include "ui/Screen.h"
 
 #define SERVER_DOOR 9030
 #define LOG 1
 
-
-// STR MANIP
-// BEGIN
-std::string ltrim(const std::string& s);
-std::string rtrim(const std::string& s);
-std::string trim(const std::string& s);
-
-// Trim start of string
-std::string ltrim(const std::string& s) {
-	const std::string WHITESPACE = " \n\r\t\f\v";
-	size_t start = s.find_first_not_of(WHITESPACE);
-	return (start == std::string::npos) ? "" : s.substr(start);
-}
-
-// Trim end of string
-std::string rtrim(const std::string& s) {
-	const std::string WHITESPACE = " \n\r\t\f\v";
-	size_t end = s.find_last_not_of(WHITESPACE);
-	return (end == std::string::npos) ? "" : s.substr(0, end + 1);
-}
-
-// Trim string
-std::string trim(const std::string& s) {
-	return rtrim(ltrim(s));
-}
-// END
 
 // Private functions
 void Client::create_connection() {
@@ -63,13 +39,16 @@ void Client::create_connection() {
 	
 	// If there is connection error, shutdown
 	if (connection_status) {
-        chat_label->set_label(chat_label->get_label() + "\nERROR: Failed to connect (" + to_string(connection_status) + ").");
+        // chat_label->set_label(chat_label->get_label() + "\nERROR: Failed to connect (" + to_string(connection_status) + ").");
+        Screen::log_message("Failed to connect (" + to_string(connection_status) + ").", Screen::LogType::ERROR);
         return; // exit(1);
     }
 	// Non-blocking I/O flag is set
     fcntl(hub_socket, F_SETFL, O_NONBLOCK);
 
     connected = true;
+    // add_text("You are connected.");
+    Screen::log_message("You are connected.", Screen::LogType::SUCCESS);
 }
 
 void Client::send_message(Message* msg) {
@@ -92,30 +71,25 @@ void Client::parse_command(std::string& str) {
         if (executors.count(cmd) > 0)
             executors[cmd](this, std::ref(args));
         else
-            add_text("ERROR: It seems like this command doesn't exist.");
+            Screen::log_message("It seems like this command doesn't exist.", Screen::LogType::ERROR);
 
     } else {
         executors["say"](this, str);
     }
 }
 
-void Client::send_button_click() {
-    std::string str = input_buffer->get_text();
+// void Client::send_button_click() {
+//     std::string str = input_buffer->get_text();
 
-    std::replace(str.begin(), str.end(), '\n', ' ');
-    std::replace(str.begin(), str.end(), '\r', ' ');
+//     std::replace(str.begin(), str.end(), '\n', ' ');
+//     std::replace(str.begin(), str.end(), '\r', ' ');
 
-	str = trim(str);
+// 	str = trim(str);
 
-    parse_command(std::ref(str));
+//     parse_command(std::ref(str));
 
-	input_buffer->set_text("");
-}
-
-void Client::auto_scroll(Gtk::Allocation& alocator) {
-    scroll_adjustment->set_value(
-		scroll_adjustment->get_upper() - scroll_adjustment->get_page_size());
-}
+// 	input_buffer->set_text("");
+// }
 
 // Function to reveive a message from the HUB (timeout handler, called each 100 milliseconds)
 bool Client::receiver() {
@@ -137,7 +111,11 @@ bool Client::receiver() {
 
 			std::string msg_str = msgObj.prefix.getNick() + ": " + msgObj.params.getTrailing();
 
-			chat_label->set_label(chat_label->get_label() + '\n' + msg_str);
+			// chat_label->set_label(chat_label->get_label() + '\n' + msg_str);
+
+            std::string trailing = msgObj.params.getTrailing();
+            std::string nick = msgObj.prefix.getNick();
+            Screen::add_message(std::ref(trailing), std::ref(nick));
 
 		} else {
 			if (res == 0){
@@ -173,31 +151,35 @@ Client::Client() {
     nickname = "";
     connected = false;
 
-    auto builder = Gtk::Builder::create_from_file("./client/ui/window.glade");
+    Screen::setup(this);
+    chat_window = Screen::window;
+    // 
 
-	builder->get_widget("chat_window", chat_window);
-	builder->get_widget("send_button", send_button);
-	builder->get_widget("chat_label", chat_label);
-	builder->get_widget("text_input", text_input);
-	builder->get_widget("chat_scroll", chat_scroll);
+    // auto builder = Gtk::Builder::create_from_file("./client/ui/window.glade");
 
-    input_buffer = Gtk::TextBuffer::create();
-    scroll_adjustment = chat_scroll->get_vadjustment();
+	// builder->get_widget("chat_window", chat_window);
+	// builder->get_widget("send_button", send_button);
+	// builder->get_widget("chat_label", chat_label);
+	// builder->get_widget("text_input", text_input);
+	// builder->get_widget("chat_scroll", chat_scroll);
 
-	chat_scroll->set_placement(Gtk::CornerType::CORNER_BOTTOM_LEFT);
+    // input_buffer = Gtk::TextBuffer::create();
+    // scroll_adjustment = chat_scroll->get_vadjustment();
+
+	// chat_scroll->set_placement(Gtk::CornerType::CORNER_BOTTOM_LEFT);
 	
-	text_input->set_buffer(input_buffer);
-	text_input->set_wrap_mode(Gtk::WrapMode::WRAP_WORD_CHAR);
+	// text_input->set_buffer(input_buffer);
+	// text_input->set_wrap_mode(Gtk::WrapMode::WRAP_WORD_CHAR);
 
-	chat_label->set_line_wrap(true);
-	chat_label->set_line_wrap_mode(Pango::WrapMode::WRAP_WORD_CHAR);
-	chat_label->set_justify(Gtk::JUSTIFY_LEFT);
+	// chat_label->set_line_wrap(true);
+	// chat_label->set_line_wrap_mode(Pango::WrapMode::WRAP_WORD_CHAR);
+	// chat_label->set_justify(Gtk::JUSTIFY_LEFT);
 
-	// On button click, send message to HUB
-	send_button->signal_clicked().connect(sigc::mem_fun(*this, &Client::send_button_click));
+	// // On button click, send message to HUB
+	// send_button->signal_clicked().connect(sigc::mem_fun(*this, &Client::send_button_click));
 
-	// Scroll to bottom on value change in label
-	chat_label->signal_size_allocate().connect_notify(sigc::mem_fun(*this, &Client::auto_scroll));
+	// // Scroll to bottom on value change in label
+	// chat_label->signal_size_allocate().connect_notify(sigc::mem_fun(*this, &Client::auto_scroll));
 
 	// Timeout to read attempt
 	Glib::signal_timeout().connect(sigc::mem_fun(*this, &Client::receiver), 100);
@@ -214,9 +196,9 @@ Gtk::Window& Client::get_window() {
     return *chat_window;
 }
 
-void Client::add_text(std::string text) {
-    chat_label->set_label(chat_label->get_label() + '\n' + text);
-}
+// void Client::add_text(std::string text) {
+//     chat_label->set_label(chat_label->get_label() + '\n' + text);
+// }
 
 Client::~Client() {
     shutdown(hub_socket, SHUT_RDWR);
