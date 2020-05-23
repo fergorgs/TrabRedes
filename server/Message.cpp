@@ -3,7 +3,9 @@
 #include <iostream>
 
 void Message::deduct() {
+    if(clients == 1) std::cout << "message destructed\n";
     if(!--clients) delete this;
+
 }
 
 const char* Message::getBuffer() {
@@ -15,9 +17,8 @@ void Message::setBuffer(char* b) {
 }
 
 Message::Message(int c) : clients(c) { 
-    std::cout << "message constructed\n";
 } 
 
 Message::~Message() {
-    std::cout << "message destructed\n";
+    
 }

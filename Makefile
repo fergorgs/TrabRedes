@@ -2,7 +2,7 @@ libs = -pthread -I/usr/include/gtkmm-3.0 -I/usr/lib/x86_64-linux-gnu/gtkmm-3.0/i
 version = -std=c++17
 
 all: client/app.cpp client/Client.cpp utils/RFCprotocol.cpp server/Hub.cpp server/Connection.cpp server/app.cpp client/Handlers.cpp client/Executors.cpp
-	# g++ -o bin/app client/app.cpp client/Client.cpp utils/RFCprotocol.cpp client/Handlers.cpp client/Executors.cpp $(libs) $(version) -Wno-deprecated-declarations 
+	# g++ -o bin/app utils/StrManip.cpp client/app.cpp client/Client.cpp utils/RFCprotocol.cpp client/Handlers.cpp client/Executors.cpp client/ui/Screen.cpp $(libs) $(version) -Wno-deprecated-declarations 
 	g++ -o bin/hub server/app.cpp server/Hub.cpp server/Connection.cpp server/Message.cpp $(version) -pthread
 
 client: bin/app

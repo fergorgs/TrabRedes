@@ -13,6 +13,7 @@ int Connection::read(Message* msg) {
 void Connection::write(Message* msg) {
     q.push(msg);
     send(socket, q.front()->getBuffer(),  4096 * sizeof(char), 0);
+    q.pop();
 }
 
 void Connection::confirmReceive() {

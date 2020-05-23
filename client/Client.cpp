@@ -2,7 +2,7 @@
 #include <gtkmm.h>
 #include <iostream>
 #include <string>
-// #include <algorithm>
+#include <algorithm>
 
 #include <netinet/in.h>
 #include <fcntl.h>
