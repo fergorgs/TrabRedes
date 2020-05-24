@@ -1,17 +1,15 @@
-#include <string>
-#include <vector>
-#include <ctype.h>
-#include <iostream>
-
-using namespace std;
-
 #ifndef RFC_PROTOCOL_H
 #define RFC_PROTOCOL_H
+
+#include <string>
+#include <vector>
 
 #define NUL 0
 #define LF 10
 #define CR 13
 #define SPACE 32
+
+using namespace std;
 
 vector<string> parseString(string original, string del);
 

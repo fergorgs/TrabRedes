@@ -1,10 +1,9 @@
 #include "Screen.h"
-#include "../Client.h"
-#include "../../utils/StrManip.h"
-#include <gtkmm.h>
+
 #include <iostream>
 
-// Var declaration
+#include "../../utils/StrManip.h"
+
 namespace Screen {
     Gtk::Window* window;
     Gtk::ScrolledWindow* scroll;
@@ -33,7 +32,6 @@ void send_button_click() {
 	Screen::input_buffer->set_text("");
 }
 
-// Function implementation
 void Screen::setup(Client* cli) {
     client = cli;
 
@@ -56,15 +54,12 @@ void Screen::setup(Client* cli) {
     grid->set_vexpand();
 
 
-    // BEGIN Scrollable chat
     scroll = Gtk::manage(new Gtk::ScrolledWindow);
     scroll->set_policy(Gtk::PolicyType::POLICY_NEVER, Gtk::PolicyType::POLICY_ALWAYS);
     scroll->set_resize_mode(Gtk::ResizeMode::RESIZE_IMMEDIATE);
     scroll->set_placement(Gtk::CornerType::CORNER_BOTTOM_LEFT);
 
     chat = Gtk::manage(new Gtk::Box(Gtk::Orientation::ORIENTATION_VERTICAL));
-    // chat->set_hexpand();
-    // chat->set_vexpand();
 
     Gtk::Separator* whitespace = Gtk::manage(new Gtk::Separator);
 
@@ -78,9 +73,10 @@ void Screen::setup(Client* cli) {
     chat->pack_start(*welcome, false, true);
 
     scroll->add(*chat);
-    // END
+
 
     Gtk::ScrolledWindow* input_control = Gtk::manage(new Gtk::ScrolledWindow);
+
 
     Gtk::TextView* input = Gtk::manage(new Gtk::TextView);
     input->set_wrap_mode(Gtk::WrapMode::WRAP_WORD_CHAR);
@@ -89,6 +85,7 @@ void Screen::setup(Client* cli) {
     input_buffer = Gtk::TextBuffer::create();
 
     input->set_buffer(input_buffer);
+
 
     Gtk::Button* send = Gtk::manage(new Gtk::Button("Send"));
 
@@ -107,8 +104,7 @@ void Screen::setup(Client* cli) {
     chat->signal_size_allocate().connect(sigc::ptr_fun(&auto_scroll));
 	send->signal_clicked().connect(sigc::ptr_fun(&send_button_click));
 
-	// delete, just for tests
-    // Glib::signal_timeout().connect(sigc::ptr_fun(&add_label), 1000);
+	Glib::signal_timeout().connect(sigc::mem_fun(*client, &Client::receiver), 100);
 }
 
 

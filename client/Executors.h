@@ -1,7 +1,9 @@
-#include "Client.h"
-
 #ifndef EXECUTORS_H
 #define EXECUTORS_H
+
+#include <string>
+
+#include "Client.h"
 
 namespace Executors {
     void connect_executor(Client* client, std::string& text);

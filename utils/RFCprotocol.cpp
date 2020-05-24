@@ -1,8 +1,7 @@
-
 #include "RFCprotocol.h"
 
-
-
+#include <ctype.h>
+#include <iostream>
 
 //parseString
 //splits a string into substrings usen a given substring as key
