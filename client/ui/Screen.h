@@ -1,9 +1,6 @@
 #ifndef SCREEN_H
 #define SCREEN_H
 
-#include <gtkmm.h>
-#include <string>
-
 #include "../Client.h"
 
 namespace Screen {

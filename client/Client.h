@@ -1,9 +1,6 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
-#include <string>
-#include <map>
-
 #include "../utils/RFCprotocol.h"
 
 typedef void (* Hook)(class Client *, std::string&);

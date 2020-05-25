@@ -1,9 +1,6 @@
 #ifndef RFC_PROTOCOL_H
 #define RFC_PROTOCOL_H
 
-#include <string>
-#include <vector>
-
 #define NUL 0
 #define LF 10
 #define CR 13

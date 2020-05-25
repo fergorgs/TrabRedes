@@ -1,12 +1,9 @@
 #include "Executors.h"
 
-#include "Client.h"
 #include "../utils/RFCprotocol.h"
 #include "ui/Screen.h"
 
-#include <iostream>
-
-#define MSG_TRUNC 4000
+#define MSG_MAX_SIZE 4000
 
 void Executors::connect_executor(Client* client, std::string& text) {
     if (client->connected) {
@@ -57,12 +54,12 @@ void Executors::say_executor(Client* client, std::string& text) {
         return;
     }
 
-    for (int i = 0; i * MSG_TRUNC < text.size(); i++) {
+    for (int i = 0; i * MSG_MAX_SIZE < text.size(); i++) {
         Message* msg = new Message();
 
         msg->prefix.setNick(client->nickname);
         msg->command.setWord("say");
-        msg->params.setTrailing(text.substr(i * MSG_TRUNC, MSG_TRUNC));
+        msg->params.setTrailing(text.substr(i * MSG_MAX_SIZE, MSG_MAX_SIZE));
 
         client->send_message(msg);
 

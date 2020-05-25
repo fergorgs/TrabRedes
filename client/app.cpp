@@ -1,7 +1,3 @@
-#include <gtkmm.h>
-#include <iostream>
-#include <signal.h>
-
 #include "Client.h"
 #include "ui/Screen.h"
 

@@ -1,14 +1,5 @@
 #include "Client.h"
 
-#include <iostream>
-
-#include <netinet/in.h>
-#include <fcntl.h>
-
-#include <sys/types.h>
-#include <sys/socket.h>
-
-#include "../utils/RFCprotocol.h"
 #include "../utils/StrManip.h"
 #include "Executors.h"
 #include "Handlers.h"
@@ -139,6 +130,8 @@ Client::Client() {
     executors["nick"] = Executors::nick_executor;
     executors["ping"] = Executors::ping_executor;
     executors["say"] = Executors::say_executor;
+
+    if (LOG) std::cout << "CLIENT_LOG: Started app" << std::endl;
 }
 
 Client::~Client() {

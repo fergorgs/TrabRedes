@@ -1,7 +1,5 @@
 #include "Screen.h"
 
-#include <iostream>
-
 #include "../../utils/StrManip.h"
 
 namespace Screen {
