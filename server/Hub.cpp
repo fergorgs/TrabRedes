@@ -6,7 +6,9 @@ Hub::~Hub() {
     alive = false;
     shutdown(hubSocket, SHUT_RDWR);
     close(hubSocket);
-
+    for(auto it = connections.begin(); it != connections.end(); ++it) {
+        delete *it;
+    }
     // if(LOG) std::cout << "HUB_LOG: Hub shutting down\n";
 
     exit(0);
@@ -16,23 +18,24 @@ void Hub::IOConnections() {
     while(alive) {
         auto it = connections.begin();
         while(it != connections.end()){
-            Message* msg = new Message(connections.size());
-            int flag = (*it)->read(msg);
+            int flag;
+            Message* msg = (*it)->read(flag);
 
             if(!flag) {
                 delete msg;
                 auto lit = it++;
+                delete *lit;
                 connections.erase(lit);
                 continue;
             }
 
             if(flag == -1) {
-                delete msg;
                 if(errno != EAGAIN && errno != EWOULDBLOCK){
                     if(LOG) std::cout << "HUB_LOG: Error receiving messege from client " << errno << std::endl;
                 }
-            }
-            else for(auto& s : connections) s->write(msg);
+            } else handlers[msg->command.getWord()](msg, this, *it);
+            
+            delete msg;
             ++it;
         }
     }
@@ -44,8 +47,7 @@ void Hub::waitConnection() {
         int nconn = accept(hubSocket, nullptr, nullptr);
         if(nconn != -1) {
             if(LOG) std::cout << "HUB_LOG: Connected to client" << std::endl;
-            std::unique_ptr<Connection> ptr(new Connection(nconn));
-            connections.push_back(std::move(ptr));
+            connections.push_back(new Connection(nconn));
         } else if(LOG) std::cout << "HUB_LOG: Failed to connect to client" << std::endl;
     }
 }
@@ -87,6 +89,11 @@ Hub::Hub() {
     //clients connections
     hubSocket = socket(AF_INET, SOCK_STREAM, 0);
     int opt = 1;
+
+    handlers["say"] = Handlers::nick;
+    handlers["ping"] = Handlers::ping;
+    handlers["nick"] = Handlers::nick;
+
 
     // reuse port and addr for server
     if (setsockopt(hubSocket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {

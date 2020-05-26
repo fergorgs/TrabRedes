@@ -1,3 +1,6 @@
+#ifndef HUB_H
+#define HUB_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
@@ -13,13 +16,15 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <memory>
+#include <unordered_map>
+#include <list>
+#include <string>
 #include <functional>
 
 #include "Connection.h"
-#include "Message.h"
-
-#ifndef HUB_H
-#define HUB_H
+#include "MessageSendController.h"
+#include "../utils/RFCprotocol.h"
+#include "Handlers.h"
 
 // typedef void (* Hook)(class Hub *, std::string&);
 
@@ -29,8 +34,10 @@ class Hub {
         bool alive;
         void waitConnection();
         void IOConnections();
-        std::list<std::unique_ptr<Connection>> connections;
+        std::unordered_map<string, std::function<void(Message*, Hub*, Connection*)>> handlers;
     public:
+        std::list<Connection*> connections;
+        std::unordered_map<std::string, Connection*> nicks;
         Hub();
         void run(int);
         ~Hub();
