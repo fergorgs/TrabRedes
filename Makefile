@@ -7,11 +7,11 @@ client_src = client/app.cpp client/Client.cpp utils/RFCprotocol.cpp client/Handl
 client_obj = $(patsubst %.cpp,%.o,$(client_src))
 
 %.o: %.cpp
-	g++ -c -o $@ $(INCLUDES) $(INCLUDE_GCH) $< `pkg-config gtkmm-3.0 --cflags` $(CPP_VERSION)
+	g++ -c -o $@ $(INCLUDE_GCH) $< `pkg-config gtkmm-3.0 --cflags` $(CPP_VERSION) 
 
 all: client/PCHClient.h.gch $(client_obj) $(server_src)
 	g++ -o bin/app $(client_obj) `pkg-config gtkmm-3.0 --libs` $(CPP_VERSION)
-	g++ -o bin/hub $(server_src) $(version) -pthread
+	g++ -o bin/hub $(server_src) -pthread $(CPP_VERSION) 
 
 client/PCHClient.h.gch: client/PCHClient.h
 	g++ -c -o $@ $< `pkg-config gtkmm-3.0 --cflags` $(CPP_VERSION)

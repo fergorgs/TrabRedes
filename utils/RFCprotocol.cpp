@@ -92,40 +92,50 @@ string Prefix::getHost() { return host; }
 //constructor of class Command
 Command::Command(){
 
-    word = "";
-    number = -1;
+    cmd = "";
+    // word = "";
+    // number = -1;
 }
-
-
 
 
 //Command::setters
 //return 0 if suceded
 //      -1 if it fails, due to the fact that "word" and "number"
 //      can't both have non-NULL values at the same time
-int Command::setWord(string word){
-    if(number = -1){
-        this->word = word;
-        return 0;
-    }
-    else
-        return -1;
+void Command::set_cmd(string cmd){
+    this->cmd = cmd;
 }
-int Command::setNumber(int number){
-    if(word == ""){
-        this->number = number;
-    return 0;
-    }
-    else
-        return -1;
-}
+
+
+//Command::setters
+//return 0 if suceded
+//      -1 if it fails, due to the fact that "word" and "number"
+//      can't both have non-NULL values at the same time
+// int Command::setWord(string word){
+//     if(number = -1){
+//         this->word = word;
+//         return 0;
+//     }
+//     else
+//         return -1;
+// }
+// int Command::setNumber(int number){
+//     if(word == ""){
+//         this->number = number;
+//     return 0;
+//     }
+//     else
+//         return -1;
+// }
 
 
 
 
 //Command::getters
-string Command::getWord() { return word; }
-int Command::getNumber() { return number; }
+string Command::get_id() { return this->cmd; }
+
+// string Command::getWord() { return word; }
+// int Command::getNumber() { return number; }
 
 
 
@@ -261,12 +271,13 @@ Message::Message(string& serializedMessage){
     }
 
     //GET COMMAND
-    //if the command is a number
-    if(isdigit(segs[i][0]))
-        command.setNumber(stoi(segs[i]));
-    //if the command starts with a letter
-    else
-        command.setWord(segs[i]);
+    command.set_cmd(segs[i]);
+    // //if the command is a number
+    // if(isdigit(segs[i][0]))
+    //     command.setNumber(stoi(segs[i]));
+    // //if the command starts with a letter
+    // else
+    //     command.setWord(segs[i]);
 
     i++;
 
@@ -315,11 +326,12 @@ string Message::serializeMessage(){
 
 
     //COMMAND
-    //Checks if the command is written or numeric
-    if(command.getWord() != "")
-        finalMessage += (command.getWord() + " ");
-    else
-        finalMessage += (to_string(command.getNumber()) + " ");
+    finalMessage += command.get_id() + " ";
+    // //Checks if the command is written or numeric
+    // if(command.getWord() != "")
+    //     finalMessage += (command.getWord() + " ");
+    // else
+    //     finalMessage += (to_string(command.getNumber()) + " ");
     
     
     //PARAMS
@@ -356,8 +368,9 @@ void Message::listMessageComponents(){
 
     cout << "COMMAND" << endl;
 
-    cout << "Word: " << command.getWord() << endl;
-    cout << "Number: " << command.getNumber() << endl;
+    cout << "ID: " << command.get_id() << endl;
+    // cout << "Word: " << command.getWord() << endl;
+    // cout << "Number: " << command.getNumber() << endl;
 
     cout << endl;
 

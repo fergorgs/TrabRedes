@@ -1,3 +1,9 @@
+#ifdef VS_HACK
+    // This is not included on compilation, just in VS Code
+    // to make IntelliSense work
+    #include "PCHClient.h"
+#endif
+
 #include "Executors.h"
 
 #include "../utils/RFCprotocol.h"
@@ -20,12 +26,12 @@ void Executors::ping_executor(Client* client, std::string& text) {
 
 void Executors::nick_executor(Client* client, std::string& text) {
     if (!client->connected) {
-        Screen::log_message("Connect to server to change your nick (/connect).", Screen::LogType::ERROR);
+        Screen::log_message("Connect to server to change your nick ( /connect ).", Screen::LogType::ERROR);
         return;
     }
 
     if (text.size() == 0) {
-        Screen::log_message("Usage is /nick <nickname>", Screen::LogType::ERROR);
+        Screen::log_message("Usage is /nick [nickname]", Screen::LogType::ERROR);
         return;
     }
 
@@ -37,11 +43,16 @@ void Executors::nick_executor(Client* client, std::string& text) {
         return;
     }
 
-    // make request to change nickname 
-    // client->change_nick(new_nick);
-    client->nickname = new_nick;
+    Message* msg = new Message();
+    msg->command.set_cmd("NICK");
+    msg->params.setTrailing(new_nick);
 
-    Screen::log_message("Nickname is set to " + client->nickname, Screen::LogType::SUCCESS);
+    client->send_message(msg);
+
+    delete msg;
+    // client->nickname = new_nick;
+
+    // Screen::log_message("Nickname is set to " + client->nickname, Screen::LogType::SUCCESS);
 }
 
 void Executors::quit_executor(Client* client, std::string& text) {
@@ -54,11 +65,16 @@ void Executors::say_executor(Client* client, std::string& text) {
         return;
     }
 
+    // if (client->nickname.empty()) {
+    //     Screen::log_message("Select your nickname first ( /nick [nickname] ).", Screen::LogType::ERROR);
+    //     return;
+    // }
+
     for (int i = 0; i * MSG_MAX_SIZE < text.size(); i++) {
         Message* msg = new Message();
 
         msg->prefix.setNick(client->nickname);
-        msg->command.setWord("say");
+        msg->command.set_cmd("SAY");
         msg->params.setTrailing(text.substr(i * MSG_MAX_SIZE, MSG_MAX_SIZE));
 
         client->send_message(msg);

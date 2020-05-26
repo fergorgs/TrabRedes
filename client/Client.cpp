@@ -1,3 +1,9 @@
+#ifdef VS_HACK
+    // This is not included on compilation, just in VS Code
+    // to make IntelliSense work
+    #include "PCHClient.h"
+#endif
+
 #include "Client.h"
 
 #include "../utils/StrManip.h"
@@ -48,6 +54,7 @@ void Client::parse_command(std::string& str) {
     if (str[0] == '/') {
         size_t arg0 = str.find(" ");
         std::string cmd = trim(str.substr(1, arg0));
+        for (char& c : cmd) c = tolower(c); // to lower case
 
         std::string args = "";
         if (arg0 != std::string::npos) 
@@ -77,15 +84,26 @@ bool Client::receiver() {
 		if (res > 0) {
 			if (LOG) std::cout << "CLIENT_LOG: Message (" << msg << ")" << std::endl;
 
-			Message msgObj = Message(std::ref(msg));
+			Message* msg_obj = new Message(std::ref(msg));
 
+            std::string cmd_id = msg_obj->command.get_id();
+            for (char& c : cmd_id) c = tolower(c); // to lower case
+
+            if (handlers.count(cmd_id) > 0)
+                handlers[cmd_id](this, msg_obj);
+            else
+                Screen::log_message("Couldn't handle message received from server.", Screen::LogType::ERROR);
+
+
+            delete msg_obj;
             // parse msg type (Handlers)
 
-			std::string msg_str = msgObj.prefix.getNick() + ": " + msgObj.params.getTrailing();
+			// std::string msg_str = msgObj.prefix.getNick() + ": " + msgObj.params.getTrailing();
 
-            std::string trailing = msgObj.params.getTrailing();
-            std::string nick = msgObj.prefix.getNick();
-            Screen::add_message(std::ref(trailing), std::ref(nick));
+            // std::string trailing = msgObj.params.getTrailing();
+            // std::string nick = msgObj.prefix.getNick();
+            // Screen::add_message(std::ref(trailing), std::ref(nick));
+
 
 		} else {
 			if (res == 0){
@@ -93,15 +111,13 @@ bool Client::receiver() {
                 
                 Screen::log_message("Disconnected from server.", Screen::LogType::ERROR);
                 connected = false;
-			}
-
-			if (res < 0 && errno != EAGAIN && errno != EWOULDBLOCK)
-				if (LOG) std::cout << "CLIENT_LOG: Error receiving messege from hub (" << errno << ")" << std::endl; 
+			} else if (res < 0 && errno != EAGAIN && errno != EWOULDBLOCK) 
+				if (LOG) std::cout << "CLIENT_LOG: Error receiving message from hub (" << errno << ")" << std::endl; 
 
 			break;
 		}
 	}
-
+for (auto& c : cmd_id) c = tolower(c);
 	return true;
 }
 
@@ -118,7 +134,9 @@ void Client::quit() {
 }
 
 Client::Client() {
-    nickname = "";
+    nickname = "aaa";
+
+    // nickname = "";
     connected = false;
 
     // Setup Screen & Signals
@@ -130,6 +148,10 @@ Client::Client() {
     executors["nick"] = Executors::nick_executor;
     executors["ping"] = Executors::ping_executor;
     executors["say"] = Executors::say_executor;
+
+    handlers["433"] = Handlers::nickname_in_use_handler;
+    handlers["nick"] = Handlers::nickname_change_handler;
+    handlers["say"] = Handlers::message_handler;
 
     if (LOG) std::cout << "CLIENT_LOG: Started app" << std::endl;
 }

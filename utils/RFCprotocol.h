@@ -41,18 +41,23 @@ class Command{
 
     private:
 
-    string word;
-    int number;
+        string cmd;
+        // string word;
+        // int number;
 
     public:
 
-    Command();
+        Command();
 
-    int setWord(string word);
-    int setNumber(int number);
+        void set_cmd(string cmd);
 
-    string getWord();
-    int getNumber();
+        // int setWord(string word);
+        // int setNumber(int number);
+
+        string get_id();
+
+        // string getWord();
+        // int getNumber();
 };
 
 

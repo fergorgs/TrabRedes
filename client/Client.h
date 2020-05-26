@@ -3,12 +3,13 @@
 
 #include "../utils/RFCprotocol.h"
 
-typedef void (* Hook)(class Client *, std::string&);
+typedef void (* ExecutorHook)(class Client *, std::string&);
+typedef void (* HandlerHook)(class Client *, class Message*);
 
 class Client {
     private:
-        std::map<std::string, Hook> executors;
-        std::map<std::string, Hook> handlers;
+        std::map<std::string, ExecutorHook> executors;
+        std::map<std::string, HandlerHook> handlers;
 
         int hub_socket;
     public:

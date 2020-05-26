@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include <map>
-#include <ctype.h>
+#include <cctype>
 #include <vector>
 
 #include <gtkmm.h>

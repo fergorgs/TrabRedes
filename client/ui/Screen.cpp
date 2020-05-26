@@ -1,3 +1,9 @@
+#ifdef VS_HACK
+    // This is not included on compilation, just in VS Code
+    // to make IntelliSense work
+    #include "PCHClient.h"
+#endif
+
 #include "Screen.h"
 
 #include "../../utils/StrManip.h"
