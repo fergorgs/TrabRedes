@@ -22,6 +22,21 @@ void Executors::connect_executor(Client* client, std::string& text) {
 
 void Executors::ping_executor(Client* client, std::string& text) {
     std::cout << "ping executor" << std::endl;
+
+    Message* msg = new Message();
+
+    msg->prefix.setNick(client->nickname);
+    msg->command.set_cmd("PING");
+    msg->params.setTrailing("Hello from earth");
+
+    //client->send_message(msg);
+
+    client->sentTime = std::chrono::steady_clock::now();
+
+    std::cout << "got here" << endl;
+    client->handlers["pong"](client, msg);
+
+    delete msg;
 }
 
 void Executors::nick_executor(Client* client, std::string& text) {

@@ -24,3 +24,16 @@ void Handlers::message_handler(Client* client, Message* msg) {
     Screen::add_message(std::ref(trail), std::ref(nick));
 
 }
+
+void Handlers::pong_handler(Client* client, Message* msg) {
+
+
+    //std::cout << "Pong handler" << endl;
+
+    std::chrono::steady_clock::time_point begin = client->sentTime;
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+    //Screen::log_message("log message test", Screen::LogType::SUCCESS);
+    Screen::log_message(std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()), Screen::LogType::SUCCESS);
+
+}

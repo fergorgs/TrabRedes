@@ -117,7 +117,7 @@ bool Client::receiver() {
 			break;
 		}
 	}
-for (auto& c : cmd_id) c = tolower(c);
+//for (auto& c : cmd_id) c = tolower(c);
 	return true;
 }
 
@@ -136,6 +136,8 @@ void Client::quit() {
 Client::Client() {
     nickname = "aaa";
 
+    std::chrono::steady_clock::time_point sentTime;
+
     // nickname = "";
     connected = false;
 
@@ -152,6 +154,7 @@ Client::Client() {
     handlers["433"] = Handlers::nickname_in_use_handler;
     handlers["nick"] = Handlers::nickname_change_handler;
     handlers["say"] = Handlers::message_handler;
+    handlers["pong"] = Handlers::pong_handler;
 
     if (LOG) std::cout << "CLIENT_LOG: Started app" << std::endl;
 }
