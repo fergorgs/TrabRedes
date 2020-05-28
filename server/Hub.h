@@ -31,13 +31,14 @@
 class Hub {
     private:
         int hubSocket = 0;
-        bool alive;
         void waitConnection();
         void IOConnections();
         std::unordered_map<string, std::function<void(Message*, Hub*, Connection*)>> handlers;
     public:
+        bool alive;
         std::list<Connection*> connections;
         std::unordered_map<std::string, Connection*> nicks;
+        void setAlive(bool);
         Hub();
         void run(int);
         ~Hub();

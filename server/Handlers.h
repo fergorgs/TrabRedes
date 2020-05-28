@@ -13,6 +13,7 @@ namespace Handlers {
     void say(Message*, Hub*, Connection*);
     void ping(Message*, Hub*, Connection*);
     void nick(Message*, Hub*, Connection*);
+    void confirm(Message*, Hub*, Connection*);
 };
 
 #endif // HANDLERS_H

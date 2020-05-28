@@ -3,7 +3,7 @@ version = -std=c++17
 
 all: client/app.cpp client/Client.cpp utils/RFCprotocol.cpp server/Hub.cpp server/Connection.cpp server/app.cpp client/Handlers.cpp client/Executors.cpp
 	# g++ -o bin/app utils/StrManip.cpp client/app.cpp client/Client.cpp utils/RFCprotocol.cpp client/Handlers.cpp client/Executors.cpp client/ui/Screen.cpp $(libs) $(version) -Wno-deprecated-declarations 
-	g++ -o bin/hub server/app.cpp server/Hub.cpp server/Connection.cpp server/Message.cpp $(version) -pthread
+	g++ -g -o bin/hub server/app.cpp server/Handlers.cpp utils/RFCprotocol.cpp server/Hub.cpp server/Connection.cpp server/MessageSendController.cpp $(version) -pthread
 
 client: bin/app
 	./bin/app

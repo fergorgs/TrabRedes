@@ -3,7 +3,7 @@
 #include <iostream>
 
 void MessageSendController::deduct() {
-    if(clients == 1) std::cout << "message destructed\n";
+    // if(clients == 1) ;
     if(!--clients) delete this;
 }
 
@@ -19,5 +19,5 @@ MessageSendController::MessageSendController(int c) : clients(c) {
 } 
 
 MessageSendController::~MessageSendController() {
-    
+    std::cout << "message destructed\n";
 }

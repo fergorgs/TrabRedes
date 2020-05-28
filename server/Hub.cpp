@@ -3,13 +3,13 @@
 #define LOG 1
 
 Hub::~Hub() {
+    cout << "HUB destructed";
     alive = false;
     shutdown(hubSocket, SHUT_RDWR);
     close(hubSocket);
     for(auto it = connections.begin(); it != connections.end(); ++it) {
         delete *it;
     }
-    // if(LOG) std::cout << "HUB_LOG: Hub shutting down\n";
 
     exit(0);
 }
@@ -22,18 +22,21 @@ void Hub::IOConnections() {
             Message* msg = (*it)->read(flag);
 
             if(!flag) {
-                delete msg;
+                if(msg) delete msg;
                 auto lit = it++;
+                nicks.erase((*lit)->nick);
                 delete *lit;
                 connections.erase(lit);
                 continue;
             }
 
-            if(flag == -1) {
+            if(flag <= 0) {
                 if(errno != EAGAIN && errno != EWOULDBLOCK){
                     if(LOG) std::cout << "HUB_LOG: Error receiving messege from client " << errno << std::endl;
                 }
-            } else handlers[msg->command.getWord()](msg, this, *it);
+            } else {
+                handlers[msg->command.getWord()](msg, this, *it);
+            }
             
             delete msg;
             ++it;
@@ -45,10 +48,10 @@ void Hub::waitConnection() {
     while(alive) {
         // accepts new connections while alive
         int nconn = accept(hubSocket, nullptr, nullptr);
-        if(nconn != -1) {
+        if(nconn > 0) {
             if(LOG) std::cout << "HUB_LOG: Connected to client" << std::endl;
             connections.push_back(new Connection(nconn));
-        } else if(LOG) std::cout << "HUB_LOG: Failed to connect to client" << std::endl;
+        } else if(errno != EAGAIN && errno != EWOULDBLOCK && LOG) std::cout << "HUB_LOG: Failed to connect to client" << std::endl;
     }
 }
 
@@ -61,6 +64,7 @@ void Hub::run(int port) {
 
     //bind the socket to the specefied IP and port
     bind(hubSocket, (struct  sockaddr*) &hub_address, sizeof(hub_address));
+    fcntl(hubSocket, F_SETFL, O_NONBLOCK);
 
     //Hub is listening
     listen(hubSocket, 40);
@@ -74,8 +78,9 @@ void Hub::run(int port) {
 
 Hub* globalHub;
 
+
 void wrapper(int) {
-    delete globalHub;
+    globalHub->alive = false;
 }
 
 
@@ -90,9 +95,10 @@ Hub::Hub() {
     hubSocket = socket(AF_INET, SOCK_STREAM, 0);
     int opt = 1;
 
-    handlers["say"] = Handlers::nick;
+    handlers["say"] = Handlers::say;
     handlers["ping"] = Handlers::ping;
     handlers["nick"] = Handlers::nick;
+    handlers["ack"] = Handlers::confirm;
 
 
     // reuse port and addr for server
