@@ -11,7 +11,7 @@ client_obj = $(patsubst %.cpp,%.o,$(client_src))
 
 all: client/PCHClient.h.gch $(client_obj) $(server_src)
 	g++ -o bin/app $(client_obj) `pkg-config gtkmm-3.0 --libs` $(CPP_VERSION)
-	g++ -o bin/hub $(server_src) -pthread $(CPP_VERSION) -pthread
+	g++ -o bin/hub $(server_src) -pthread $(INCLUDE_GCH) $(CPP_VERSION)
 
 client/PCHClient.h.gch: client/PCHClient.h
 	g++ -c -o $@ $< `pkg-config gtkmm-3.0 --cflags` $(CPP_VERSION)

@@ -96,15 +96,6 @@ bool Client::receiver() {
 
 
             delete msg_obj;
-            // parse msg type (Handlers)
-
-			// std::string msg_str = msgObj.prefix.getNick() + ": " + msgObj.params.getTrailing();
-
-            // std::string trailing = msgObj.params.getTrailing();
-            // std::string nick = msgObj.prefix.getNick();
-            // Screen::add_message(std::ref(trailing), std::ref(nick));
-
-
 		} else {
 			if (res == 0){
 				if (LOG) std::cout << "CLIENT_LOG: Disconnected from HUB (" << to_string(errno) << ")." << std::endl;
@@ -117,7 +108,6 @@ bool Client::receiver() {
 			break;
 		}
 	}
-
 	return true;
 }
 
@@ -136,6 +126,7 @@ void Client::quit() {
 Client::Client() {
 
     nickname = "";
+    std::chrono::steady_clock::time_point sentTime;
     connected = false;
 
     // Setup Screen & Signals
@@ -151,6 +142,7 @@ Client::Client() {
     handlers["433"] = Handlers::nickname_in_use_handler;
     handlers["nick"] = Handlers::nickname_change_handler;
     handlers["say"] = Handlers::message_handler;
+    handlers["pong"] = Handlers::pong_handler;
 
     if (LOG) std::cout << "CLIENT_LOG: Started app" << std::endl;
 }

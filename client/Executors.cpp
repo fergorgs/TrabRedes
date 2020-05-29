@@ -21,7 +21,22 @@ void Executors::connect_executor(Client* client, std::string& text) {
 }
 
 void Executors::ping_executor(Client* client, std::string& text) {
-    std::cout << "ping executor" << std::endl;
+    if (!client->connected) {
+        Screen::log_message("You need to be connected to do this ( /connect ).", Screen::LogType::ERROR);
+        return;
+    }
+
+    Message* msg = new Message();
+
+    msg->prefix.setNick(client->nickname);
+    msg->command.set_cmd("PING");
+    msg->params.setTrailing("Hello from earth");
+
+    client->send_message(msg);
+
+    client->sentTime = std::chrono::steady_clock::now();
+
+    delete msg;
 }
 
 void Executors::nick_executor(Client* client, std::string& text) {
@@ -50,9 +65,6 @@ void Executors::nick_executor(Client* client, std::string& text) {
     client->send_message(msg);
 
     delete msg;
-    // client->nickname = new_nick;
-
-    // Screen::log_message("Nickname is set to " + client->nickname, Screen::LogType::SUCCESS);
 }
 
 void Executors::quit_executor(Client* client, std::string& text) {
@@ -65,10 +77,10 @@ void Executors::say_executor(Client* client, std::string& text) {
         return;
     }
 
-    // if (client->nickname.empty()) {
-    //     Screen::log_message("Select your nickname first ( /nick [nickname] ).", Screen::LogType::ERROR);
-    //     return;
-    // }
+    if (client->nickname.empty()) {
+        Screen::log_message("Select your nickname first ( /nick [nickname] ).", Screen::LogType::ERROR);
+        return;
+    }
 
     for (int i = 0; i * MSG_MAX_SIZE < text.size(); i++) {
         Message* msg = new Message();

@@ -1,3 +1,4 @@
+#include <iostream>
 #include "Handlers.h"
 
 void Handlers::say(Message* m, Hub* h, Connection* sender) {
@@ -14,11 +15,10 @@ void Handlers::ping(Message* m, Hub* h, Connection* sender) {
 }
 
 void Handlers::nick(Message* m, Hub* h, Connection* sender) {
-    cout << "nick";
-    std::string s = m->prefix.getNick();
+    std::string s = m->params.getTrailing();
     if(h->nicks.find(s) != h->nicks.end()) {
         Message* nm = new Message();
-        nm->command.setWord("433");
+        nm->command.set_cmd("433");
         sender->send_msg(nm);
         delete nm;
     } else {

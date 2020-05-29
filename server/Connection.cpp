@@ -41,7 +41,7 @@ Connection::Connection(int s) : socket(s) {
 
 void Connection::pong() {
     Message* ret = new Message();
-    ret->command.setWord("pong");
+    ret->command.set_cmd("pong");
     send(socket, ret->serializeMessage().c_str(),  4096 * sizeof(char), 0);
     delete ret;
 }

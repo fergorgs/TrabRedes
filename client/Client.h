@@ -2,6 +2,7 @@
 #define CLIENT_H
 
 #include "../utils/RFCprotocol.h"
+#include <chrono>
 
 typedef void (* ExecutorHook)(class Client *, std::string&);
 typedef void (* HandlerHook)(class Client *, class Message*);
@@ -14,6 +15,7 @@ class Client {
         int hub_socket;
     public:
         std::string nickname;
+        std::chrono::steady_clock::time_point sentTime;
         bool connected;
 
         Client();

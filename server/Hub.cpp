@@ -35,7 +35,9 @@ void Hub::IOConnections() {
                     if(LOG) std::cout << "HUB_LOG: Error receiving messege from client " << errno << std::endl;
                 }
             } else {
-                handlers[msg->command.getWord()](msg, this, *it);
+                std::string cmd_id = msg->command.get_id();
+                for (char& c : cmd_id) c = tolower(c); // to lower case
+                handlers[cmd_id](msg, this, *it);
             }
             
             delete msg;
