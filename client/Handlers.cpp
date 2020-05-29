@@ -23,4 +23,12 @@ void Handlers::message_handler(Client* client, Message* msg) {
         
     Screen::add_message(std::ref(trail), std::ref(nick));
 
+    // ACK MSG Received
+    Message* response = new Message();
+    response->command.set_cmd("ACK");
+    response->prefix.setNick(client->nickname);
+
+    client->send_message(response);
+    
+    delete response;
 }

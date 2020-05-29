@@ -117,7 +117,7 @@ bool Client::receiver() {
 			break;
 		}
 	}
-for (auto& c : cmd_id) c = tolower(c);
+
 	return true;
 }
 
@@ -134,9 +134,8 @@ void Client::quit() {
 }
 
 Client::Client() {
-    nickname = "aaa";
 
-    // nickname = "";
+    nickname = "";
     connected = false;
 
     // Setup Screen & Signals
