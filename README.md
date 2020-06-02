@@ -45,7 +45,7 @@ Once the Client is running, you have the following commands at your disposal:
 ### Disclaimers
 * The server now can handle more than 2 connections and doesn't close all applications on shutdown, just disconnects all client applications. Then, the client can connect only after the server is running again.
 * For now the threshold to break the message into parts is 4000 chars. This is due to addition of header data, such as the command used and user's nickname. In the next submissions, this size threshold may change to a bigger or smaller value, to avoid wasting space.
-
+* The server has a confirmation of received message now: when the client receive a message it sends back a "ACK". Then the server sends the next message. If the server fail to read "ACK" five times, then the connection is lost. For each attempt to read "ACK", if it fails, it sends the message again to the client app. 
 
 ## Group Members
 * Alexandre Galocha Pinto Junior (10734706) [git](https://github.com/alexandregjr)  
