@@ -19,26 +19,31 @@ This repository is internet relay chat project for SSC0142 course (ICMC - USP).
         $ make all
     ```
 
-### Running
-<!-- CHANGE, DOESNT HAVE TO OPEN HUB FIRST MORE -->
-* 1st step: run the hub
-    * It is important to run the hub first, given that the client needs to connect to the server (hub); if it isn't open, the client won't open either.
+### Running Client
+* To run the client, simply type:
+    ```
+        $ make client
+    ```
+
+    * Note: it is no longer necessary to run the server program first. The server must be running only to connect the client program.
+
+* **Implemented Client Commands**  
+Once the Client is running, you have the following commands at your disposal:
+    * **/connect**: use this command to connect to the server. It will only work if the server program is running. You must be connected to execute all other commands (except /quit, of course).
+    * **/quit**: this command terminates the application. It has the same effect as clicking on the famous red 'x' in the top window bar.
+    * **/nick**: being connected to the server, this command makes you define or change your nickname. If you've just connected, your nickname isn't defined and you must define your nickname to be able to send messages in chat.
+    * **/ping**: this command sends a "PING" to the server and waits for "PONG" response. It is used to measure the socket latency. You need to be connected to do this.
+
+### Running Server
+* To run the server application, simply:
     ```
         $ make server
     ```
-
-* 2nd & 3rd steps: run 2 client instances
-    * After running the server (hub), you need to run 2 instances of the client mandatorily. As long as there are less than 2 client instances, the hub is stuck waiting for 2 connections. 
-    ```
-        $ make client
-        $ make client
-    ```
-
-    * As soon as the client is ran, the program will ask for a nickname to identify the messages.
-    * Then a window is open. In this window, on the top part all messages are shown and you can input your messages in the bottom left text area. To send the message, just click the "Send" button. As simple as that.
+* The server application doesn't interact with the user. It only logs some messages of connections being made or broken, and message management.  
+* To close this application the user just have to send an interrupt (SIGINT, Ctrl-C) via terminal.
 
 ### Disclaimers
-* When either instance of the client is closed, the hub shuts down as well. This is due to the way we made the hub, for 2 and only 2 connections.
+* The server now can handle more than 2 connections and doesn't close all applications on shutdown, just disconnects all client applications. Then, the client can connect only after the server is running again.
 * For now the threshold to break the message into parts is 4000 chars. This is due to addition of header data, such as the command used and user's nickname. In the next submissions, this size threshold may change to a bigger or smaller value, to avoid wasting space.
 
 
