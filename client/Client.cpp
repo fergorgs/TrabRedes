@@ -124,7 +124,7 @@ void Client::quit() {
 }
 
 Client::Client() {
-
+    channel = "";
     nickname = "";
     std::chrono::steady_clock::time_point sentTime;
     connected = false;
@@ -138,11 +138,13 @@ Client::Client() {
     executors["nick"] = Executors::nick_executor;
     executors["ping"] = Executors::ping_executor;
     executors["say"] = Executors::say_executor;
+    executors["join"] = Executors::join_executor;
 
     handlers["433"] = Handlers::nickname_in_use_handler;
     handlers["nick"] = Handlers::nickname_change_handler;
     handlers["say"] = Handlers::message_handler;
     handlers["pong"] = Handlers::pong_handler;
+    handlers["join"] = Handlers::channel_join_handler;
 
     if (LOG) std::cout << "CLIENT_LOG: Started app" << std::endl;
 }

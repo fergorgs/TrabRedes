@@ -47,6 +47,8 @@ void Hub::IOConnections() {
                 }
             } else {
                 std::string cmd_id = msg->command.get_id();
+                cout << "recv " << cmd_id << endl; 
+
                 for (char& c : cmd_id) c = tolower(c); // to lower case
                 handlers[cmd_id](msg, this, *it);
             }

@@ -11,7 +11,7 @@ void Channel::connect(Connection* member) {
     // if(find(whitelist.begin(), whitelist.end(), member) != whitelist.end()) 
     members.push_back(member);
     member->cur_channel = this;
-    member->channel_pos = members.end(); // (error?) - 1; // iterator to member's position in members => O(1) quit
+    member->channel_pos = --members.end(); // (error?) - 1; // iterator to member's position in members => O(1) quit
 }
 
 void Channel::remove(std::string s) {

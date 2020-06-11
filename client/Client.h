@@ -15,6 +15,7 @@ class Client {
         int hub_socket;
     public:
         std::string nickname;
+        std::string channel;
         std::chrono::steady_clock::time_point sentTime;
         bool connected;
 

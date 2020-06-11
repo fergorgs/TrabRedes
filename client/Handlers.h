@@ -9,6 +9,7 @@ namespace Handlers {
     void nickname_change_handler(Client* client, Message* msg);
     void message_handler(Client* client, Message* msg);
     void pong_handler(Client* client, Message* msg);
+    void channel_join_handler(Client* client, Message* msg);
 }
 
 #endif

@@ -2,10 +2,12 @@
 #include "Handlers.h"
 
 void Handlers::say(Message* m, Hub* h, Connection* sender) {
-    if(!sender->cur_channel) return;
+    cout << "entered" <<endl;
+    if(sender->cur_channel == nullptr) return;
     int n = sender->cur_channel->members.size();
     MessageSendController* msc = new MessageSendController(n);
     msc->setBuffer(m->serializeMessage());
+    cout << "sending msg to " << n << " users" << endl;
     int i = 0;
     for(auto& s : sender->cur_channel->members) if(i++ < n) s->write(msc);
 }
@@ -43,10 +45,14 @@ void Handlers::join(Message* m, Hub* h, Connection* sender) {
             delete c;
         }
     }
-    if(h->channels.find(name) != h->channels.end()) 
-        h->channels[name]->connect(sender);
-    else 
-        h->channels[name] = new Channel(name, sender);    
+    
+    if(h->channels.find(name) == h->channels.end()) 
+        h->channels[name] = new Channel(name, sender);
+
+    h->channels[name]->connect(sender);
+    
+
+    sender->send_msg(m);
 }
 
 void Handlers::kick(Message* m, Hub* h, Connection* sender) {

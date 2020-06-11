@@ -18,6 +18,8 @@ void Executors::connect_executor(Client* client, std::string& text) {
     }
 
     client->create_connection();
+
+    Screen::log_message("Use /join [channel] to join a channel.", Screen::LogType::SUCCESS);
 }
 
 void Executors::ping_executor(Client* client, std::string& text) {
@@ -82,6 +84,11 @@ void Executors::say_executor(Client* client, std::string& text) {
         return;
     }
 
+    if (client->channel.empty()) {
+        Screen::log_message("Join a Channel first ( /join [channel] ).", Screen::LogType::ERROR);
+        return;
+    }
+
     for (int i = 0; i * MSG_MAX_SIZE < text.size(); i++) {
         Message* msg = new Message();
 
@@ -93,4 +100,21 @@ void Executors::say_executor(Client* client, std::string& text) {
 
         delete msg;
     }    
+}
+
+
+void Executors::join_executor(Client* client, std::string& text) {
+    if (!client->connected) {
+        Screen::log_message("You need to be connected to do this.", Screen::LogType::ERROR);
+        return;
+    }
+
+    Message* join = new Message();
+
+    join->command.set_cmd("JOIN");
+    join->params.setTrailing(text);
+
+    client->send_message(join);
+
+    delete join;
 }

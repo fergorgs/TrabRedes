@@ -14,7 +14,7 @@ void Handlers::nickname_in_use_handler(Client* client, Message* msg) {
 void Handlers::nickname_change_handler(Client* client, Message* msg) {
     client->nickname = msg->params.getTrailing();
 
-    Screen::log_message("Nickname changed to " + msg->params.getTrailing() + ".", Screen::LogType::SUCCESS);
+    Screen::log_message("Nickname changed to " + client->nickname + ".", Screen::LogType::SUCCESS);
 }
 
 void Handlers::message_handler(Client* client, Message* msg) {
@@ -38,4 +38,11 @@ void Handlers::pong_handler(Client* client, Message* msg) {
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
     Screen::log_message(std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()) + "ms until PONG", Screen::LogType::SUCCESS);
+}
+
+
+void Handlers::channel_join_handler(Client* client, Message* msg) {
+    client->channel = msg->params.getTrailing();
+
+    Screen::log_message("Joined channel " + client->channel + ".", Screen::LogType::SUCCESS);
 }
