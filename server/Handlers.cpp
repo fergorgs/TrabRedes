@@ -38,8 +38,10 @@ void Handlers::join(Message* m, Hub* h, Connection* sender) {
     Channel* c = sender->cur_channel;
     if(c) {
         c->remove(sender);
-        if(c->members.empty()) h->channels.erase(c->name);
-        delete c;
+        if(c->members.empty()) {
+            h->channels.erase(c->name);
+            delete c;
+        }
     }
     if(h->channels.find(name) != h->channels.end()) 
         h->channels[name]->connect(sender);
