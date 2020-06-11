@@ -9,11 +9,11 @@
 
 class Channel {
     private:
-        std::list<Connection*> members;
-        std::string name;
         std::list<Connection*> whitelist;
     public:
+        std::string name;
         Connection* admin;
+        std::list<Connection*> members;
         Channel(std::string, Connection*);
         ~Channel();
         void connect(Connection*); 

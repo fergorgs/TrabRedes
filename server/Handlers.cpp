@@ -2,12 +2,12 @@
 #include "Handlers.h"
 
 void Handlers::say(Message* m, Hub* h, Connection* sender) {
-    cout << "say";
-    int n = h->connections.size();
+    if(!sender->cur_channel) return;
+    int n = sender->cur_channel->members.size();
     MessageSendController* msc = new MessageSendController(n);
     msc->setBuffer(m->serializeMessage());
     int i = 0;
-    for(auto& s : h->connections) if(i++ < n) s->write(msc);
+    for(auto& s : sender->cur_channel->members) if(i++ < n) s->write(msc);
 }
 
 void Handlers::ping(Message* m, Hub* h, Connection* sender) {
@@ -35,6 +35,12 @@ void Handlers::confirm(Message* m, Hub* h, Connection* sender) {
 
 void Handlers::join(Message* m, Hub* h, Connection* sender) {
     std::string name = m->params.getTrailing();
+    Channel* c = sender->cur_channel;
+    if(c) {
+        c->remove(sender);
+        if(c->members.empty()) h->channels.erase(c->name);
+        delete c;
+    }
     if(h->channels.find(name) != h->channels.end()) 
         h->channels[name]->connect(sender);
     else 

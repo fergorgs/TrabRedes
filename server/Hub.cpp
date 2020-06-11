@@ -28,7 +28,14 @@ void Hub::IOConnections() {
                 if(msg) delete msg;
                 auto lit = it++;
                 nicks.erase((*lit)->nick);
-                (*lit)->cur_channel->remove(*lit);
+                Channel* c = (*lit)->cur_channel;
+                if(c) {
+                    c->remove(*lit);
+                    if(c->members.empty()) {
+                        channels.erase(c->name);
+                        delete c;
+                    }
+                }
                 delete *lit;
                 connections.erase(lit);
                 continue;

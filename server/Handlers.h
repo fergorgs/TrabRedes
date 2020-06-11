@@ -3,6 +3,7 @@
 
 #include <list>
 #include "Connection.h"
+#include "Channel.h"
 #include "MessageSendController.h"
 #include "../utils/RFCprotocol.h"
 #include "Hub.h"
