@@ -10,6 +10,9 @@ Hub::~Hub() {
     for(auto it = connections.begin(); it != connections.end(); ++it) {
         delete *it;
     }
+    for(auto it = channels.begin(); it != channels.end(); ++it) {
+        delete it->second;
+    }
 
     exit(0);
 }
@@ -25,6 +28,7 @@ void Hub::IOConnections() {
                 if(msg) delete msg;
                 auto lit = it++;
                 nicks.erase((*lit)->nick);
+                (*lit)->cur_channel->remove(*lit);
                 delete *lit;
                 connections.erase(lit);
                 continue;
@@ -101,6 +105,8 @@ Hub::Hub() {
     handlers["ping"] = Handlers::ping;
     handlers["nick"] = Handlers::nick;
     handlers["ack"] = Handlers::confirm;
+    handlers["join"] = Handlers::join;
+    handlers["kick"] = Handlers::kick;
 
 
     // reuse port and addr for server

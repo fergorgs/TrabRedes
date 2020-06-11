@@ -10,17 +10,20 @@
 #ifndef CONNECTION_H
 #define CONNECTION_H
 
+#include "Channel.h"
 #include "MessageSendController.h"
 #include "../utils/RFCprotocol.h"
 
 class Connection {
     private:
         bool alive = true;
-        int socket;
         int retryCount = 0;
         std::queue<MessageSendController*> q;
         std::chrono::time_point<std::chrono::system_clock> last_timestamp;
     public:
+        int socket;
+        Channel* cur_channel;
+        std::list<Connection*>::iterator channel_pos;
         std::string nick;
         Connection(int);
         ~Connection();

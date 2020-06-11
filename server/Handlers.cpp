@@ -32,3 +32,16 @@ void Handlers::nick(Message* m, Hub* h, Connection* sender) {
 void Handlers::confirm(Message* m, Hub* h, Connection* sender) {
     sender->confirmReceive();
 }
+
+void Handlers::join(Message* m, Hub* h, Connection* sender) {
+    std::string name = m->params.getTrailing();
+    if(h->channels.find(name) != h->channels.end()) 
+        h->channels[name]->connect(sender);
+    else 
+        h->channels[name] = new Channel(name, sender);    
+}
+
+void Handlers::kick(Message* m, Hub* h, Connection* sender) {
+    if(sender->cur_channel && sender->cur_channel->admin == sender) 
+        sender->cur_channel->remove(m->params.getTrailing());
+}

@@ -56,7 +56,8 @@
         "valarray": "cpp",
         "set": "cpp",
         "cinttypes": "cpp",
-        "iomanip": "cpp"
+        "iomanip": "cpp",
+        "cstring": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled",
     "C_Cpp.dimInactiveRegions": true

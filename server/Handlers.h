@@ -14,6 +14,8 @@ namespace Handlers {
     void ping(Message*, Hub*, Connection*);
     void nick(Message*, Hub*, Connection*);
     void confirm(Message*, Hub*, Connection*);
+    void join(Message*, Hub*, Connection*);
+    void kick(Message*, Hub*, Connection*);
 };
 
 #endif // HANDLERS_H

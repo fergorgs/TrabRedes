@@ -25,6 +25,7 @@
 #include "MessageSendController.h"
 #include "../utils/RFCprotocol.h"
 #include "Handlers.h"
+#include "Channel.h"
 
 // typedef void (* Hook)(class Hub *, std::string&);
 
@@ -35,6 +36,7 @@ class Hub {
         void IOConnections();
         std::unordered_map<string, std::function<void(Message*, Hub*, Connection*)>> handlers;
     public:
+        std::unordered_map<std::string, Channel*> channels;
         bool alive;
         std::list<Connection*> connections;
         std::unordered_map<std::string, Connection*> nicks;
