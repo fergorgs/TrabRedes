@@ -1,7 +1,7 @@
 CPP_VERSION = -std=c++17
 INCLUDE_GCH = -include client/PCHClient.h
 
-server_src = server/app.cpp server/Handlers.cpp utils/RFCprotocol.cpp server/Hub.cpp server/Connection.cpp server/MessageSendController.cpp
+server_src = server/app.cpp server/Handlers.cpp utils/RFCprotocol.cpp server/Hub.cpp server/Connection.cpp server/MessageSendController.cpp server/Channel.cpp
 
 client_src = client/app.cpp client/Client.cpp utils/RFCprotocol.cpp client/Handlers.cpp client/Executors.cpp client/ui/Screen.cpp utils/StrManip.cpp
 client_obj = $(patsubst %.cpp,%.o,$(client_src))

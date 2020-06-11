@@ -1,11 +1,13 @@
-#pragma once
+
 #include <list>
 #include <string>
-#include "Connection.h"
 
 
 #ifndef CHANNEL_H
 #define CHANNEL_H
+
+#include "Connection.h"
+class Connection;
 
 class Channel {
     private:

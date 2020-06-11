@@ -7,12 +7,15 @@
 #include <cstring>
 #include <ctime>
 
+
 #ifndef CONNECTION_H
 #define CONNECTION_H
 
 #include "Channel.h"
 #include "MessageSendController.h"
 #include "../utils/RFCprotocol.h"
+
+class Channel;
 
 class Connection {
     private:
