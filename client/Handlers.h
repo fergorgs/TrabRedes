@@ -10,6 +10,8 @@ namespace Handlers {
     void message_handler(Client* client, Message* msg);
     void pong_handler(Client* client, Message* msg);
     void channel_join_handler(Client* client, Message* msg);
+    void channel_op_privs_needed_handler(Client* client, Message* msg);
+    void kicked_from_channel_handler(Client* client, Message* msg);
 }
 
 #endif

@@ -139,12 +139,15 @@ Client::Client() {
     executors["ping"] = Executors::ping_executor;
     executors["say"] = Executors::say_executor;
     executors["join"] = Executors::join_executor;
+    executors["kick"] = Executors::kick_executor;
 
     handlers["433"] = Handlers::nickname_in_use_handler;
     handlers["nick"] = Handlers::nickname_change_handler;
     handlers["say"] = Handlers::message_handler;
     handlers["pong"] = Handlers::pong_handler;
     handlers["join"] = Handlers::channel_join_handler;
+    handlers["482"] = Handlers::channel_op_privs_needed_handler;
+    handlers["kick"] = Handlers::kicked_from_channel_handler;
 
     if (LOG) std::cout << "CLIENT_LOG: Started app" << std::endl;
 }

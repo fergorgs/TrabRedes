@@ -102,7 +102,6 @@ void Executors::say_executor(Client* client, std::string& text) {
     }    
 }
 
-
 void Executors::join_executor(Client* client, std::string& text) {
     if (!client->connected) {
         Screen::log_message("You need to be connected to do this.", Screen::LogType::ERROR);
@@ -117,4 +116,31 @@ void Executors::join_executor(Client* client, std::string& text) {
     client->send_message(join);
 
     delete join;
+}
+
+void Executors::kick_executor(Client* client, std::string& text) {
+    if (!client->connected) {
+        Screen::log_message("You need to be connected to do this.", Screen::LogType::ERROR);
+        return;
+    }
+
+    if (client->channel.empty()) {
+        Screen::log_message("Join a Channel first ( /join [channel] ).", Screen::LogType::ERROR);
+        return;
+    }
+
+    std::size_t arg1 = text.find(" ");
+    std::size_t size = text.size();
+    std::string nick = text.substr(0, arg1);
+    std::string reason = text.substr(arg1 + 1);
+
+    Message* kick = new Message();
+
+    kick->command.set_cmd("KICK");
+    kick->params.addMiddleParam(nick);
+    kick->params.setTrailing(reason);
+
+    client->send_message(kick);
+
+    delete kick;
 }

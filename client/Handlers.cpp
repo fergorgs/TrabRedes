@@ -46,3 +46,14 @@ void Handlers::channel_join_handler(Client* client, Message* msg) {
 
     Screen::log_message("Joined channel " + client->channel + ".", Screen::LogType::SUCCESS);
 }
+
+
+void Handlers::channel_op_privs_needed_handler(Client* client, Message* msg) {
+    Screen::log_message("You need to be channel OP to do this!", Screen::LogType::ERROR);
+}
+
+void Handlers::kicked_from_channel_handler(Client* client, Message* msg) {
+    Screen::log_message("You have been kicked from #" + client->channel + ".", Screen::LogType::SUCCESS);
+
+    client->channel = "";
+}

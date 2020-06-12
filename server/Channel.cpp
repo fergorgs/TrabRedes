@@ -14,27 +14,39 @@ void Channel::connect(Connection* member) {
     member->channel_pos = --members.end(); // (error?) - 1; // iterator to member's position in members => O(1) quit
 }
 
-void Channel::remove(std::string s) {
+Connection* Channel::remove(std::string s) {
     auto it = find_if(members.begin(), members.end(), [&](Connection* m) {return m->nick == s;});
     if(it != members.end()) {
         Connection* member = *it;
         members.erase(it);
         member->cur_channel = nullptr;
+
+        return member;
     }
+
+    return nullptr;
 }
 
-void Channel::remove(int socket) {
+Connection* Channel::remove(int socket) {
     auto it = find_if(members.begin(), members.end(), [&](Connection* m) {return m->socket == socket;});
     if(it != members.end()) {
         Connection* member = *it;
         members.erase(it);
         member->cur_channel = nullptr;
+
+        return member;
     }
+
+    return nullptr;
 }
 
-void Channel::remove(Connection* member) {
+Connection* Channel::remove(Connection* member) {
     if(member->cur_channel == this) {
         members.erase(member->channel_pos);
         member->cur_channel = nullptr;
+
+        return member;
     }
+
+    return nullptr;
 }

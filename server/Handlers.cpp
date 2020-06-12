@@ -2,12 +2,10 @@
 #include "Handlers.h"
 
 void Handlers::say(Message* m, Hub* h, Connection* sender) {
-    cout << "entered" <<endl;
     if(sender->cur_channel == nullptr) return;
     int n = sender->cur_channel->members.size();
     MessageSendController* msc = new MessageSendController(n);
     msc->setBuffer(m->serializeMessage());
-    cout << "sending msg to " << n << " users" << endl;
     int i = 0;
     for(auto& s : sender->cur_channel->members) if(i++ < n) s->write(msc);
 }
@@ -56,6 +54,30 @@ void Handlers::join(Message* m, Hub* h, Connection* sender) {
 }
 
 void Handlers::kick(Message* m, Hub* h, Connection* sender) {
-    if(sender->cur_channel && sender->cur_channel->admin == sender) 
-        sender->cur_channel->remove(m->params.getTrailing());
+    if(sender->cur_channel && sender->cur_channel->admin == sender) {
+        std::vector<std::string> nicks = m->params.getMiddleContent();
+
+        for (std::string& nick : nicks) {
+            Connection* kicked = sender->cur_channel->remove(nick);
+
+            if (kicked != nullptr) {
+                Message* kick = new Message();
+
+                kick->command.set_cmd("KICK");
+                kick->params.setTrailing(m->params.getTrailing());
+
+                kicked->send_msg(kick);
+
+                delete kick;
+            }
+        }
+    } else {
+        Message* error_op = new Message();
+
+        error_op->command.set_cmd("482");
+        
+        sender->send_msg(error_op);
+
+        delete error_op;
+    }
 }
