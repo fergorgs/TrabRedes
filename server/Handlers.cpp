@@ -3,11 +3,20 @@
 
 void Handlers::say(Message* m, Hub* h, Connection* sender) {
     if(sender->cur_channel == nullptr) return;
-    int n = sender->cur_channel->members.size();
-    MessageSendController* msc = new MessageSendController(n);
-    msc->setBuffer(m->serializeMessage());
-    int i = 0;
-    for(auto& s : sender->cur_channel->members) if(i++ < n) s->write(msc);
+
+    bool senderIsMuted = false;
+
+    for(auto& memb : sender->cur_channel->mutedMembers)
+        if(memb == sender)
+            senderIsMuted = true;
+
+    if(!senderIsMuted){
+        int n = sender->cur_channel->members.size();
+        MessageSendController* msc = new MessageSendController(n);
+        msc->setBuffer(m->serializeMessage());
+        int i = 0;
+        for(auto& s : sender->cur_channel->members) if(i++ < n) s->write(msc);
+    }
 }
 
 void Handlers::ping(Message* m, Hub* h, Connection* sender) {
@@ -95,6 +104,84 @@ void Handlers::whois(Message* message, Hub* server, Connection* sender) {
                 message->params.setTrailing(who->ip_addr);
 
                 sender->send_msg(message);
+            }
+        }
+    } else {
+        Message* error_op = new Message();
+
+        error_op->command.set_cmd("482");
+        
+        sender->send_msg(error_op);
+
+        delete error_op;
+    }
+}
+
+void Handlers::mute(Message* m, Hub* h, Connection* sender) {
+    if(sender->cur_channel && sender->cur_channel->admin == sender) {
+        
+        std::vector<std::string> nicks = m->params.getMiddleContent();
+
+        for (std::string& nick : nicks) {
+            
+            if(sender->cur_channel->find(nick) != nullptr){
+                sender->cur_channel->mute(sender->cur_channel->find(nick));
+                
+                //Connection* kicked = sender->cur_channel->remove(nick);
+
+                //if (kicked != nullptr) {
+                    Message* mute = new Message();
+                    mute->command.set_cmd("MUTE");
+                    mute->params.addMiddleParam(nick);
+                    sender->send_msg(mute);
+
+                    Message* mutewarn = new Message();
+                    mutewarn->command.set_cmd("MUTEWARN");
+                    //unmutewarn->params.addMiddleParam(nick);
+                    (sender->cur_channel->find(nick))->send_msg(mutewarn);
+
+                    delete mute;
+                    delete mutewarn;
+                //}
+            }
+        }
+    } else {
+        Message* error_op = new Message();
+
+        error_op->command.set_cmd("482");
+        
+        sender->send_msg(error_op);
+
+        delete error_op;
+    }
+}
+
+void Handlers::unmute(Message* m, Hub* h, Connection* sender) {
+    if(sender->cur_channel && sender->cur_channel->admin == sender) {
+        
+        std::vector<std::string> nicks = m->params.getMiddleContent();
+
+        for (std::string& nick : nicks) {
+            
+            if(sender->cur_channel->find(nick) != nullptr){
+                sender->cur_channel->unmute(sender->cur_channel->find(nick));
+                
+                //Connection* kicked = sender->cur_channel->remove(nick);
+
+                //if (kicked != nullptr) {
+                    Message* unmute = new Message();
+                    unmute->command.set_cmd("UNMUTE");
+                    unmute->params.addMiddleParam(nick);
+                    sender->send_msg(unmute);
+
+                    Message* unmutewarn = new Message();
+                    unmutewarn->command.set_cmd("UNMUTEWARN");
+                    //unmutewarn->params.addMiddleParam(nick);
+                    (sender->cur_channel->find(nick))->send_msg(unmutewarn);
+
+                    delete unmute;
+                    delete unmutewarn;
+                //}
             }
         }
     } else {

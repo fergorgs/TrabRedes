@@ -165,3 +165,45 @@ void Executors::who_is_executor(Client* client, std::string& text) {
 
     delete whois;
 }
+
+void Executors::mute_executor(Client* client, std::string& text) {
+    if (!client->connected) {
+        Screen::log_message("You need to be connected to do this.", Screen::LogType::ERROR);
+        return;
+    }
+
+    if (client->channel.empty()) {
+        Screen::log_message("Join a Channel first ( /join [channel] ).", Screen::LogType::ERROR);
+        return;
+    }
+
+    Message* mute = new Message();
+
+    mute->command.set_cmd("MUTE");
+    mute->params.addMiddleParam(text);
+
+    client->send_message(mute);
+
+    delete mute;
+}
+
+void Executors::unmute_executor(Client* client, std::string& text) {
+    if (!client->connected) {
+        Screen::log_message("You need to be connected to do this.", Screen::LogType::ERROR);
+        return;
+    }
+
+    if (client->channel.empty()) {
+        Screen::log_message("Join a Channel first ( /join [channel] ).", Screen::LogType::ERROR);
+        return;
+    }
+
+    Message* unmute = new Message();
+
+    unmute->command.set_cmd("UNMUTE");
+    unmute->params.addMiddleParam(text);
+
+    client->send_message(unmute);
+
+    delete unmute;
+}

@@ -123,6 +123,8 @@ Hub::Hub() {
     handlers["join"] = Handlers::join;
     handlers["kick"] = Handlers::kick;
     handlers["whois"] = Handlers::whois;
+    handlers["mute"] = Handlers::mute;
+    handlers["unmute"] = Handlers::unmute;
 
 
     // reuse port and addr for server

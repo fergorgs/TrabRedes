@@ -16,8 +16,11 @@ class Channel {
         std::string name;
         Connection* admin;
         std::list<Connection*> members;
+        std::list<Connection*> mutedMembers;
         Channel(std::string, Connection*);
         ~Channel();
+        void mute(Connection*);
+        void unmute(Connection*);
         void connect(Connection*); 
         Connection* remove(Connection*); // remove by reference
         Connection* remove(std::string); // remove by nick

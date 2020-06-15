@@ -7,6 +7,16 @@ Channel::~Channel() {
     std::cout << "Channel destructed";
 }
 
+void Channel::unmute(Connection* member) {
+    // if(find(whitelist.begin(), whitelist.end(), member) != whitelist.end()) 
+    mutedMembers.remove(member);
+}
+
+void Channel::mute(Connection* member) {
+    // if(find(whitelist.begin(), whitelist.end(), member) != whitelist.end()) 
+    mutedMembers.push_back(member);
+}
+
 void Channel::connect(Connection* member) {
     // if(find(whitelist.begin(), whitelist.end(), member) != whitelist.end()) 
     members.push_back(member);

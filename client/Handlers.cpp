@@ -61,3 +61,19 @@ void Handlers::kicked_from_channel_handler(Client* client, Message* msg) {
 void Handlers::who_is_response_handler(Client* client, Message* msg) {
     Screen::log_message("O usuário " + msg->params.getMiddleContent()[0] + " possui o IP " + msg->params.getTrailing(), Screen::LogType::SUCCESS);
 }
+
+void Handlers::mute_handler(Client* client, Message* msg) {
+    Screen::log_message("O usuário " + msg->params.getMiddleContent()[0] + " foi mutado", Screen::LogType::SUCCESS);
+}
+
+void Handlers::mute_warning_handler(Client* client, Message* msg) {
+    Screen::log_message("O admin do canal te mutou", Screen::LogType::SUCCESS);
+}
+
+void Handlers::unmute_handler(Client* client, Message* msg) {
+    Screen::log_message("O usuário " + msg->params.getMiddleContent()[0] + " foi desmutado", Screen::LogType::SUCCESS);
+}
+
+void Handlers::unmute_warning_handler(Client* client, Message* msg) {
+    Screen::log_message("O admin do canal te desmutou", Screen::LogType::SUCCESS);
+}

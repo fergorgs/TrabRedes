@@ -13,6 +13,10 @@ namespace Handlers {
     void channel_op_privs_needed_handler(Client* client, Message* msg);
     void kicked_from_channel_handler(Client* client, Message* msg);
     void who_is_response_handler(Client* client, Message* msg);
+    void mute_handler(Client* client, Message* msg);
+    void mute_warning_handler(Client* client, Message* msg);
+    void unmute_handler(Client* client, Message* msg);
+    void unmute_warning_handler(Client* client, Message* msg);
 }
 
 #endif

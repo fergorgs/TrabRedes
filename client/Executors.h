@@ -12,6 +12,8 @@ namespace Executors {
     void join_executor(Client* client, std::string& text);
     void kick_executor(Client* client, std::string& text);
     void who_is_executor(Client* client, std::string& text);
+    void mute_executor(Client* client, std::string& text);
+    void unmute_executor(Client* client, std::string& text);
 }
 
 #endif
