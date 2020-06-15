@@ -28,7 +28,8 @@ class Connection {
         Channel* cur_channel;
         std::list<Connection*>::iterator channel_pos;
         std::string nick;
-        Connection(int);
+        std::string ip_addr;
+        Connection(int, std::string);
         ~Connection();
         void confirmReceive();
         void write(MessageSendController*);

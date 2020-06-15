@@ -94,7 +94,6 @@ bool Client::receiver() {
             else
                 Screen::log_message("Couldn't handle message received from server.", Screen::LogType::ERROR);
 
-
             delete msg_obj;
 		} else {
 			if (res == 0){
@@ -140,6 +139,7 @@ Client::Client() {
     executors["say"] = Executors::say_executor;
     executors["join"] = Executors::join_executor;
     executors["kick"] = Executors::kick_executor;
+    executors["whois"] = Executors::who_is_executor;
 
     handlers["433"] = Handlers::nickname_in_use_handler;
     handlers["nick"] = Handlers::nickname_change_handler;
@@ -148,6 +148,7 @@ Client::Client() {
     handlers["join"] = Handlers::channel_join_handler;
     handlers["482"] = Handlers::channel_op_privs_needed_handler;
     handlers["kick"] = Handlers::kicked_from_channel_handler;
+    handlers["whois"] = Handlers::who_is_response_handler;
 
     if (LOG) std::cout << "CLIENT_LOG: Started app" << std::endl;
 }

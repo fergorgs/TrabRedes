@@ -17,6 +17,7 @@ namespace Handlers {
     void confirm(Message*, Hub*, Connection*);
     void join(Message*, Hub*, Connection*);
     void kick(Message*, Hub*, Connection*);
+    void whois(Message*, Hub*, Connection*);
 };
 
 #endif // HANDLERS_H

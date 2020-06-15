@@ -144,3 +144,24 @@ void Executors::kick_executor(Client* client, std::string& text) {
 
     delete kick;
 }
+
+void Executors::who_is_executor(Client* client, std::string& text) {
+    if (!client->connected) {
+        Screen::log_message("You need to be connected to do this.", Screen::LogType::ERROR);
+        return;
+    }
+
+    if (client->channel.empty()) {
+        Screen::log_message("Join a Channel first ( /join [channel] ).", Screen::LogType::ERROR);
+        return;
+    }
+
+    Message* whois = new Message();
+
+    whois->command.set_cmd("WHOIS");
+    whois->params.addMiddleParam(text);
+
+    client->send_message(whois);
+
+    delete whois;
+}

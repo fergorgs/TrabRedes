@@ -34,7 +34,7 @@ void Connection::confirmReceive() {
     q.pop();
 }
 
-Connection::Connection(int s) : socket(s), cur_channel(nullptr) {
+Connection::Connection(int s, std::string ip) : socket(s), ip_addr(ip), cur_channel(nullptr) {
     std::cout << "Connection constructed\n";
     fcntl(socket, F_SETFL, O_NONBLOCK);
 }; 

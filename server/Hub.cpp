@@ -1,5 +1,7 @@
 #include "Hub.h"
-
+#include <arpa/inet.h>
+// #include <sys/socket.h>
+// #include <netinet/in.h>
 #define LOG 1
 
 Hub::~Hub() {
@@ -61,18 +63,22 @@ void Hub::IOConnections() {
 
 void Hub::waitConnection() {
     while(alive) {
+
+        struct sockaddr_in client_addr;
+        socklen_t c_addr_size = sizeof(client_addr);
         // accepts new connections while alive
-        int nconn = accept(hubSocket, nullptr, nullptr);
+        int nconn = accept(hubSocket, (struct sockaddr *) &client_addr, &c_addr_size);
         if(nconn > 0) {
             if(LOG) std::cout << "HUB_LOG: Connected to client" << std::endl;
-            connections.push_back(new Connection(nconn));
+            std::string ip_addr(inet_ntoa(client_addr.sin_addr));
+            connections.push_back(new Connection(nconn, ip_addr));
         } else if(errno != EAGAIN && errno != EWOULDBLOCK && LOG) std::cout << "HUB_LOG: Failed to connect to client" << std::endl;
     }
 }
 
 void Hub::run(int port) {
     //setting the address struct to bind and wait for clients to connect
-    struct  sockaddr_in hub_address;
+    struct sockaddr_in hub_address;
     hub_address.sin_family = AF_INET;
     hub_address.sin_port = htons(port);
     hub_address.sin_addr.s_addr = INADDR_ANY;
@@ -116,6 +122,7 @@ Hub::Hub() {
     handlers["ack"] = Handlers::confirm;
     handlers["join"] = Handlers::join;
     handlers["kick"] = Handlers::kick;
+    handlers["whois"] = Handlers::whois;
 
 
     // reuse port and addr for server

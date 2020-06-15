@@ -81,3 +81,29 @@ void Handlers::kick(Message* m, Hub* h, Connection* sender) {
         delete error_op;
     }
 }
+
+void Handlers::whois(Message* message, Hub* server, Connection* sender) {
+    if (sender->cur_channel && sender->cur_channel->admin == sender) {
+        std::vector<std::string> params = message->params.getMiddleContent();
+
+        if (params.size() != 0) {
+            std::string nick = params[0];
+
+            Connection* who = sender->cur_channel->find(nick);
+
+            if (who != nullptr) {
+                message->params.setTrailing(who->ip_addr);
+
+                sender->send_msg(message);
+            }
+        }
+    } else {
+        Message* error_op = new Message();
+
+        error_op->command.set_cmd("482");
+        
+        sender->send_msg(error_op);
+
+        delete error_op;
+    }
+}

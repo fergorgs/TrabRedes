@@ -27,18 +27,18 @@ Connection* Channel::remove(std::string s) {
     return nullptr;
 }
 
-Connection* Channel::remove(int socket) {
-    auto it = find_if(members.begin(), members.end(), [&](Connection* m) {return m->socket == socket;});
-    if(it != members.end()) {
-        Connection* member = *it;
-        members.erase(it);
-        member->cur_channel = nullptr;
+// Connection* Channel::remove(int socket) {
+//     auto it = find_if(members.begin(), members.end(), [&](Connection* m) {return m->socket == socket;});
+//     if(it != members.end()) {
+//         Connection* member = *it;
+//         members.erase(it);
+//         member->cur_channel = nullptr;
 
-        return member;
-    }
+//         return member;
+//     }
 
-    return nullptr;
-}
+//     return nullptr;
+// }
 
 Connection* Channel::remove(Connection* member) {
     if(member->cur_channel == this) {
@@ -48,5 +48,14 @@ Connection* Channel::remove(Connection* member) {
         return member;
     }
 
+    return nullptr;
+}
+
+Connection* Channel::find(std::string nick) {
+    auto it = find_if(members.begin(), members.end(), [&](Connection* m) {return m->nick == nick;});
+
+    if (it != members.end()) 
+        return *it;
+        
     return nullptr;
 }

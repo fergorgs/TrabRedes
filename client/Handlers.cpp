@@ -57,3 +57,7 @@ void Handlers::kicked_from_channel_handler(Client* client, Message* msg) {
 
     client->channel = "";
 }
+
+void Handlers::who_is_response_handler(Client* client, Message* msg) {
+    Screen::log_message("O usuário " + msg->params.getMiddleContent()[0] + " possui o IP " + msg->params.getTrailing(), Screen::LogType::SUCCESS);
+}

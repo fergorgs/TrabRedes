@@ -21,7 +21,8 @@ class Channel {
         void connect(Connection*); 
         Connection* remove(Connection*); // remove by reference
         Connection* remove(std::string); // remove by nick
-        Connection* remove(int);         // remove by socket (?needed?)
+        // Connection* remove(int);         // remove by socket (?needed?)
+        Connection* find(std::string);
     };
 
 
