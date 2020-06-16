@@ -143,18 +143,27 @@ Client::Client() {
     executors["mute"] = Executors::mute_executor;
     executors["unmute"] = Executors::unmute_executor;
 
-    handlers["433"] = Handlers::nickname_in_use_handler;
     handlers["nick"] = Handlers::nickname_change_handler;
     handlers["say"] = Handlers::message_handler;
     handlers["pong"] = Handlers::pong_handler;
     handlers["join"] = Handlers::channel_join_handler;
-    handlers["482"] = Handlers::channel_op_privs_needed_handler;
     handlers["kick"] = Handlers::kicked_from_channel_handler;
-    handlers["whois"] = Handlers::who_is_response_handler;
+    // handlers["whois"] = Handlers::who_is_response_handler;
     handlers["mute"] = Handlers::mute_handler;
     handlers["mutewarn"] = Handlers::mute_warning_handler;
     handlers["unmute"] = Handlers::unmute_handler;
     handlers["unmutewarn"] = Handlers::unmute_warning_handler;
+
+    // numerics
+    handlers["433"] = Handlers::nickname_in_use_handler;
+    handlers["482"] = Handlers::channel_op_privs_needed_handler;
+    // handler 403
+    // handler 461
+    // handler 442
+    // handler 476
+    // handler 311
+    // handler 401
+
 
     if (LOG) std::cout << "CLIENT_LOG: Started app" << std::endl;
 }

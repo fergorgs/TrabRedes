@@ -112,8 +112,11 @@ void Executors::join_executor(Client* client, std::string& text) {
         return;
     }
 
+    // check size of text, and "#"
+
     Message* join = new Message();
 
+    join->prefix.setNick(client->nickname);
     join->command.set_cmd("JOIN");
     join->params.addMiddleParam(text);
 
@@ -134,15 +137,18 @@ void Executors::kick_executor(Client* client, std::string& text) {
     }
 
     std::size_t arg1 = text.find(" ");
-    std::size_t size = text.size();
     std::string nick = text.substr(0, arg1);
-    std::string reason = text.substr(arg1 + 1);
 
     Message* kick = new Message();
 
     kick->command.set_cmd("KICK");
+    kick->params.addMiddleParam(client->channel);
     kick->params.addMiddleParam(nick);
-    kick->params.setTrailing(reason);
+
+    if (arg1 != std::string::npos) {
+        std::string reason = text.substr(arg1 + 1);
+        kick->params.setTrailing(reason);
+    }
 
     client->send_message(kick);
 
@@ -181,10 +187,19 @@ void Executors::mute_executor(Client* client, std::string& text) {
         return;
     }
 
+    std::size_t arg1 = text.find(" ");
+    std::string nick = text.substr(0, arg1);
+
     Message* mute = new Message();
 
     mute->command.set_cmd("MUTE");
-    mute->params.addMiddleParam(text);
+    mute->params.addMiddleParam(client->channel);
+    mute->params.addMiddleParam(nick);
+
+    if (arg1 != std::string::npos) {
+        std::string reason = text.substr(arg1 + 1);
+        mute->params.setTrailing(reason);
+    }
 
     client->send_message(mute);
 
@@ -202,10 +217,14 @@ void Executors::unmute_executor(Client* client, std::string& text) {
         return;
     }
 
+    std::size_t arg1 = text.find(" ");
+    std::string nick = text.substr(0, arg1);
+
     Message* unmute = new Message();
 
     unmute->command.set_cmd("UNMUTE");
-    unmute->params.addMiddleParam(text);
+    unmute->params.addMiddleParam(client->channel);
+    unmute->params.addMiddleParam(nick);
 
     client->send_message(unmute);
 
