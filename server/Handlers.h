@@ -1,7 +1,6 @@
 #ifndef HANDLERS_H
 #define HANDLERS_H
 
-#include <list>
 #include "Connection.h"
 #include "Channel.h"
 #include "MessageSendController.h"

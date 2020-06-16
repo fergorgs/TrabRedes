@@ -1,5 +1,3 @@
-#include <string>
-
 #ifndef MESSAGESENDCONTROLLER_H
 #define MESSAGESENDCONTROLLER_H
 

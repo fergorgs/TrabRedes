@@ -61,8 +61,12 @@ void Executors::nick_executor(Client* client, std::string& text) {
     }
 
     Message* msg = new Message();
+
+    if (client->nickname.size() != 0)
+        msg->prefix.setNick(client->nickname);
+
     msg->command.set_cmd("NICK");
-    msg->params.setTrailing(new_nick);
+    msg->params.addMiddleParam(new_nick);
 
     client->send_message(msg);
 
@@ -111,7 +115,7 @@ void Executors::join_executor(Client* client, std::string& text) {
     Message* join = new Message();
 
     join->command.set_cmd("JOIN");
-    join->params.setTrailing(text);
+    join->params.addMiddleParam(text);
 
     client->send_message(join);
 

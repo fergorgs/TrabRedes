@@ -1,75 +1,146 @@
-#include <iostream>
+#ifdef VS_HACK
+    // This is not included on compilation, just in VS Code
+    // to make IntelliSense work
+    #include "PCHServer.h"
+#endif
+
 #include "Handlers.h"
 
-void Handlers::say(Message* m, Hub* h, Connection* sender) {
-    if(sender->cur_channel == nullptr) return;
+void Handlers::say(Message* message, Hub* h, Connection* sender) {
+    if (sender->cur_channel == nullptr) 
+        return;
 
     bool senderIsMuted = false;
 
-    for(auto& memb : sender->cur_channel->mutedMembers)
-        if(memb == sender)
+    for (auto& memb : sender->cur_channel->mutedMembers) {
+        if(memb == sender) {
             senderIsMuted = true;
+            break;
+        }
+    }
 
-    if(!senderIsMuted){
-        int n = sender->cur_channel->members.size();
-        MessageSendController* msc = new MessageSendController(n);
-        msc->setBuffer(m->serializeMessage());
+    if (!senderIsMuted) {
+        std::size_t members = sender->cur_channel->members.size();
+
+        MessageSendController* control = new MessageSendController(members);
+        control->setBuffer(message->serializeMessage());
         int i = 0;
-        for(auto& s : sender->cur_channel->members) if(i++ < n) s->write(msc);
+        for (auto& receiver : sender->cur_channel->members) {
+            if (i++ < members) {
+                receiver->write(control);
+            } else {
+                break;
+            }
+        }
     }
 }
 
-void Handlers::ping(Message* m, Hub* h, Connection* sender) {
-    sender->pong();
+void Handlers::ping(Message* message, Hub* hub, Connection* sender) {
+    Message* pong = new Message();
+    
+    pong->command.set_cmd("PONG");
+
+    sender->send_msg(pong);
+
+    delete pong;
 }
 
-void Handlers::nick(Message* m, Hub* h, Connection* sender) {
-    std::string s = m->params.getTrailing();
-    if(h->nicks.find(s) != h->nicks.end()) {
-        Message* nm = new Message();
-        nm->command.set_cmd("433");
-        sender->send_msg(nm);
-        delete nm;
-    } else {
-        if(sender->nick.size()) h->nicks.erase(sender->nick);
-        h->nicks[s] = sender;
-        sender->nick = s;
-        sender->send_msg(m);
+void Handlers::nick(Message* message, Hub* hub, Connection* sender) {
+    std::vector<std::string> params = message->params.getMiddleContent();
+    
+    if (params.size() == 1) {
+        std::string new_nick = params[0];
+
+        if(hub->nicks.find(new_nick) != hub->nicks.end()) {
+            Message* nick_in_use = new Message();
+
+            nick_in_use->command.set_cmd("433");
+            nick_in_use->params.addMiddleParam(new_nick);
+            nick_in_use->params.setTrailing("Nickname is already in use");
+
+            sender->send_msg(nick_in_use);
+
+            delete nick_in_use;
+
+        } else {
+            if (sender->nick != message->prefix.getNick())
+                return;
+
+            if(sender->nick.size() != 0) 
+                hub->nicks.erase(sender->nick);
+            
+            hub->nicks[new_nick] = sender;
+            sender->nick = new_nick;
+            sender->send_msg(message);
+        }
     }
+    // else 461
 }
 
-void Handlers::confirm(Message* m, Hub* h, Connection* sender) {
+void Handlers::confirm(Message* message, Hub* hub, Connection* sender) {
     sender->confirmReceive();
 }
 
-void Handlers::join(Message* m, Hub* h, Connection* sender) {
-    std::string name = m->params.getTrailing();
-    Channel* c = sender->cur_channel;
-    if(c) {
-        c->remove(sender);
-        if(c->members.empty()) {
-            h->channels.erase(c->name);
-            delete c;
+void Handlers::join(Message* message, Hub* hub, Connection* sender) {
+    if (sender->nick != message->prefix.getNick())
+        return;
+
+    std::vector<std::string> params = message->params.getMiddleContent();
+
+    if (params.size() == 1) {
+        std::string name = params[0];
+        
+        if (sender->nick != message->prefix.getNick())
+            return;
+
+        if (name.size() != 0 && name[0] != '#') {
+            Message* bad_mask = new Message();
+
+            bad_mask->command.set_cmd("476");
+            
+            sender->send_msg(bad_mask);
+
+            delete bad_mask;
+
+        } else {
+            Channel* channel = sender->cur_channel;
+
+            if (channel) {
+                channel->remove(sender);
+                
+                if (channel->members.empty()) {
+                    hub->channels.erase(channel->name);
+                    delete channel;
+                }
+            }
+            
+            if(hub->channels.find(name) == hub->channels.end()) 
+                hub->channels[name] = new Channel(name, sender);
+
+            hub->channels[name]->connect(sender);
+            
+
+            sender->send_msg(message);
         }
-    }
-    
-    if(h->channels.find(name) == h->channels.end()) 
-        h->channels[name] = new Channel(name, sender);
-
-    h->channels[name]->connect(sender);
-    
-
-    sender->send_msg(m);
+    } 
+    // else 461
 }
 
+// continue here
 void Handlers::kick(Message* m, Hub* h, Connection* sender) {
-    if(sender->cur_channel && sender->cur_channel->admin == sender) {
-        std::vector<std::string> nicks = m->params.getMiddleContent();
+    Channel* channel = sender->cur_channel;
 
-        for (std::string& nick : nicks) {
-            Connection* kicked = sender->cur_channel->remove(nick);
+    if(channel != nullptr && channel->admin == sender) {
+        std::vector<std::string> params = m->params.getMiddleContent();
+
+        if (params.size() == 1) {
+            std::string nick = params[0];
+
+            Connection* kicked = channel->find(nick);
 
             if (kicked != nullptr) {
+                channel->remove(kicked);
+
                 Message* kick = new Message();
 
                 kick->command.set_cmd("KICK");

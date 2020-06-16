@@ -8,11 +8,11 @@
 #include "ui/Screen.h"
 
 void Handlers::nickname_in_use_handler(Client* client, Message* msg) {
-    Screen::log_message("Nickname <b>" + msg->params.getTrailing() + "</b> is already in use.", Screen::LogType::ERROR);
+    Screen::log_message("Nickname <b>" + msg->params.getMiddleContent()[0] + "</b> is already in use.", Screen::LogType::ERROR);
 }
 
 void Handlers::nickname_change_handler(Client* client, Message* msg) {
-    client->nickname = msg->params.getTrailing();
+    client->nickname = msg->params.getMiddleContent()[0];
 
     Screen::log_message("Nickname changed to " + client->nickname + ".", Screen::LogType::SUCCESS);
 }

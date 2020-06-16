@@ -3,6 +3,7 @@
 #include <map>
 #include <cctype>
 #include <vector>
+#include <chrono>
 
 #include <gtkmm.h>
 

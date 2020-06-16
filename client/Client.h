@@ -2,7 +2,6 @@
 #define CLIENT_H
 
 #include "../utils/RFCprotocol.h"
-#include <chrono>
 
 typedef void (* ExecutorHook)(class Client *, std::string&);
 typedef void (* HandlerHook)(class Client *, class Message*);

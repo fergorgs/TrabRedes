@@ -1,14 +1,20 @@
+#ifdef VS_HACK
+    // This is not included on compilation, just in VS Code
+    // to make IntelliSense work
+    #include "PCHServer.h"
+#endif
+
 #include "Connection.h"
-#include <iostream>
 
 Message* Connection::read(int& ret) {
     auto now = std::chrono::system_clock::now();
     auto dur = std::chrono::duration_cast<std::chrono::seconds>(now -  last_timestamp).count();
-    if(!q.empty() && dur > 1) {
+    if(!message_queue.empty() && dur > 1) {
         if(retryCount++ == 5) {
             ret = 0;
             return nullptr;
         }
+        
         write(nullptr);
     }
     char m[4096];
@@ -21,17 +27,17 @@ Message* Connection::read(int& ret) {
 }
 
 void Connection::write(MessageSendController* msg) {
-    if(msg) q.push(msg);
-    if(!msg || q.size() == 1) {
-        send(socket, q.front()->getBuffer(),  4096 * sizeof(char), 0);
+    if(msg) message_queue.push(msg);
+    if(!msg || message_queue.size() == 1) {
+        send(socket, message_queue.front()->getBuffer(),  4096 * sizeof(char), 0);
         last_timestamp = std::chrono::system_clock::now();
     }
 }
 
 void Connection::confirmReceive() {
     retryCount = 0;
-    q.front()->deduct();
-    q.pop();
+    message_queue.front()->deduct();
+    message_queue.pop();
 }
 
 Connection::Connection(int s, std::string ip) : socket(s), ip_addr(ip), cur_channel(nullptr) {
@@ -39,19 +45,16 @@ Connection::Connection(int s, std::string ip) : socket(s), ip_addr(ip), cur_chan
     fcntl(socket, F_SETFL, O_NONBLOCK);
 }; 
 
-void Connection::pong() {
-    Message* ret = new Message();
-    ret->command.set_cmd("pong");
-    send(socket, ret->serializeMessage().c_str(),  4096 * sizeof(char), 0);
-    delete ret;
-}
+// void Connection::pong() {
+   
+// }
 
 void Connection::send_msg(Message* m) {
     send(socket, m->serializeMessage().c_str(),  4096 * sizeof(char), 0);
 }
 
 Connection::~Connection() {
-    while(!q.empty()) q.front()->deduct(), q.pop();
+    while(!message_queue.empty()) message_queue.front()->deduct(), message_queue.pop();
     shutdown(socket, SHUT_RDWR);
     std::cout << "Connection destructed\n";
 }

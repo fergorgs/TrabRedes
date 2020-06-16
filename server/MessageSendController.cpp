@@ -1,6 +1,10 @@
-#include "MessageSendController.h"
+#ifdef VS_HACK
+    // This is not included on compilation, just in VS Code
+    // to make IntelliSense work
+    #include "PCHServer.h"
+#endif
 
-#include <iostream>
+#include "MessageSendController.h"
 
 void MessageSendController::deduct() {
     // if(clients == 1) ;

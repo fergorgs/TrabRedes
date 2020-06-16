@@ -1,7 +1,10 @@
+#ifdef VS_HACK
+    // This is not included on compilation, just in VS Code
+    // to make IntelliSense work
+    #include "PCHServer.h"
+#endif
+
 #include "Hub.h"
-#include <arpa/inet.h>
-// #include <sys/socket.h>
-// #include <netinet/in.h>
 #define LOG 1
 
 Hub::~Hub() {
