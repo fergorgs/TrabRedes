@@ -12,10 +12,13 @@ class Client {
         std::map<std::string, HandlerHook> handlers;
 
         int hub_socket;
+
+        void reset();
     public:
         std::string nickname;
         std::string channel;
-        std::chrono::steady_clock::time_point sentTime;
+        std::chrono::steady_clock::time_point ping_time;
+        std::chrono::steady_clock::time_point pong_time;
         bool connected;
 
         Client();

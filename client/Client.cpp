@@ -14,6 +14,11 @@
 #define SERVER_DOOR 6667
 #define LOG 1
 
+void Client::reset() {
+    channel = "";
+    nickname = "";
+    connected = false;
+}
 
 // Private functions
 void Client::create_connection() {
@@ -38,7 +43,10 @@ void Client::create_connection() {
     fcntl(hub_socket, F_SETFL, O_NONBLOCK);
 
     connected = true;
+
     Screen::log_message("You are connected.", Screen::LogType::SUCCESS);
+    Screen::log_message("Use /join [channel] to join a channel.", Screen::LogType::WARNING);
+
     if (LOG) std::cout << "CLIENT_LOG: Connected to hub" << std::endl;
 }
 
@@ -46,6 +54,9 @@ void Client::send_message(Message* msg) {
 	std::string serialized_msg = msg->serializeMessage();
 
 	if (LOG) std::cout << "CLIENT_LOG: Sending >" << serialized_msg << std::endl;
+
+    if (msg->command.get_id() == "PING")
+        ping_time = std::chrono::steady_clock::now();
 
 	send(hub_socket, serialized_msg.c_str(), 4096, 0);
 }
@@ -78,6 +89,8 @@ bool Client::receiver() {
 		// if receive data from socket, write in screen
 		char c_msg[4096];
 		int res = recv(hub_socket, &c_msg, 4096, 0);
+        
+        std::chrono::steady_clock::time_point recv_time = std::chrono::steady_clock::now();
 
 		std::string msg(c_msg);
 
@@ -89,6 +102,9 @@ bool Client::receiver() {
             std::string cmd_id = msg_obj->command.get_id();
             for (char& c : cmd_id) c = tolower(c); // to lower case
 
+            if (msg_obj->command.get_id() == "PONG")
+                pong_time = recv_time;
+
             if (handlers.count(cmd_id) > 0)
                 handlers[cmd_id](this, msg_obj);
             else
@@ -99,8 +115,9 @@ bool Client::receiver() {
 			if (res == 0){
 				if (LOG) std::cout << "CLIENT_LOG: Disconnected from HUB (" << to_string(errno) << ")." << std::endl;
                 
+                reset();
+
                 Screen::log_message("Disconnected from server.", Screen::LogType::ERROR);
-                connected = false;
 			} else if (res < 0 && errno != EAGAIN && errno != EWOULDBLOCK) 
 				if (LOG) std::cout << "CLIENT_LOG: Error receiving message from hub (" << errno << ")" << std::endl; 
 
@@ -125,7 +142,8 @@ void Client::quit() {
 Client::Client() {
     channel = "";
     nickname = "";
-    std::chrono::steady_clock::time_point sentTime;
+    std::chrono::steady_clock::time_point ping_time;
+    std::chrono::steady_clock::time_point pong_time;
     connected = false;
 
     // Setup Screen & Signals
