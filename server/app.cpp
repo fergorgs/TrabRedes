@@ -8,5 +8,5 @@ int main() {
     signal(SIGINT, cancel);
 
     Hub h;
-    h.run(9030);
+    h.run(6667);
 }

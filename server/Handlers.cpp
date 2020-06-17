@@ -27,9 +27,9 @@ void Handlers::say(Message* message, Hub* server, Connection* sender) {
         MessageSendController* control = new MessageSendController(members);
         control->setBuffer(message->serializeMessage());
         int i = 0;
-        for (auto& receiver : sender->cur_channel->members) {
+        for (auto& recipient : sender->cur_channel->members) {
             if (i++ < members) {
-                receiver->write(control);
+                recipient->write(control);
             } else {
                 break;
             }
@@ -67,7 +67,7 @@ void Handlers::nick(Message* message, Hub* server, Connection* sender) {
             delete nick_in_use;
 
         } else {
-            if (sender->nick != message->prefix.getNick())
+            if (sender->nick != message->prefix.getNick()) // no nickname given
                 return;
 
             if(sender->nick.size() != 0) 
@@ -75,6 +75,7 @@ void Handlers::nick(Message* message, Hub* server, Connection* sender) {
             
             server->nicks[new_nick] = sender;
             sender->nick = new_nick;
+            
             sender->send_msg(message);
         }
     }
@@ -101,6 +102,8 @@ void Handlers::join(Message* message, Hub* server, Connection* sender) {
             Message* bad_mask = new Message();
 
             bad_mask->command.set_cmd("476");
+            bad_mask->params.addMiddleParam(name);
+            bad_mask->params.setTrailing("Bad channel mask.");
             
             sender->send_msg(bad_mask);
 
@@ -141,6 +144,8 @@ void Handlers::kick(Message* message, Hub* server, Connection* sender) {
             Message* bad_mask = new Message();
 
             bad_mask->command.set_cmd("476");
+            bad_mask->params.addMiddleParam(ch_name);
+            bad_mask->params.setTrailing("Bad channel mask.");
             
             sender->send_msg(bad_mask);
 
@@ -194,16 +199,20 @@ void Handlers::kick(Message* message, Hub* server, Connection* sender) {
                 Message* kick = new Message();
 
                 kick->command.set_cmd("KICK");
+                kick->params.addMiddleParam(ch_name);
                 kick->params.setTrailing(message->params.getTrailing());
 
                 kicked->send_msg(kick);
 
                 delete kick;
             }
+            // else user not in channel (441)
         } else {
             Message* error_op = new Message();
 
             error_op->command.set_cmd("482");
+            error_op->params.addMiddleParam(ch_name);
+            error_op->params.setTrailing("You're not channel operator.");
             
             sender->send_msg(error_op);
 
@@ -244,7 +253,9 @@ void Handlers::whois(Message* message, Hub* server, Connection* sender) {
             Message* error_op = new Message();
 
             error_op->command.set_cmd("482");
-            
+            error_op->params.addMiddleParam(sender->cur_channel->name);
+            error_op->params.setTrailing("You're not channel operator.");
+
             sender->send_msg(error_op);
 
             delete error_op;
@@ -283,6 +294,8 @@ void Handlers::mute(Message* message, Hub* server, Connection* sender) {
             Message* bad_mask = new Message();
 
             bad_mask->command.set_cmd("476");
+            bad_mask->params.addMiddleParam(ch_name);
+            bad_mask->params.setTrailing("Bad channel mask.");
             
             sender->send_msg(bad_mask);
 
@@ -333,6 +346,7 @@ void Handlers::mute(Message* message, Hub* server, Connection* sender) {
                 feedback->command.set_cmd("MUTE");
                 feedback->params.addMiddleParam(nick);
 
+                // send to channel
                 sender->send_msg(feedback);
 
                 delete feedback;
@@ -346,10 +360,13 @@ void Handlers::mute(Message* message, Hub* server, Connection* sender) {
 
                 delete warning;
             }
+            // else user not in channel (441)
         } else {
             Message* error_op = new Message();
 
             error_op->command.set_cmd("482");
+            error_op->params.addMiddleParam(ch_name);
+            error_op->params.setTrailing("You're not channel operator.");
             
             sender->send_msg(error_op);
 
@@ -389,6 +406,8 @@ void Handlers::unmute(Message* message, Hub* server, Connection* sender) {
             Message* bad_mask = new Message();
 
             bad_mask->command.set_cmd("476");
+            bad_mask->params.addMiddleParam(ch_name);
+            bad_mask->params.setTrailing("Bad channel mask.");
             
             sender->send_msg(bad_mask);
 
@@ -452,10 +471,13 @@ void Handlers::unmute(Message* message, Hub* server, Connection* sender) {
 
                 delete warning;
             }
+            // else user not in channel (441)
         } else {
             Message* error_op = new Message();
 
             error_op->command.set_cmd("482");
+            error_op->params.addMiddleParam(ch_name);
+            error_op->params.setTrailing("You're not channel operator.");
             
             sender->send_msg(error_op);
 

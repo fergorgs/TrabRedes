@@ -134,7 +134,7 @@ void Screen::log_message(std::string msg, LogType type) {
             label->set_markup("<b>ERROR!</b> " + msg);
             break;
         case WARNING:
-            label->set_markup("<b>WARNING!</b> " + msg);
+            label->set_markup("<b>!</b> " + msg);
             break;
         case SUCCESS:
             label->set_markup("<b>" + msg + "</b>");
