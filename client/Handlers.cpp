@@ -131,6 +131,14 @@ void Handlers::no_such_channel_handler(Client* client, Message* msg) {
     Screen::log_message(command + ": " + reason + " (" + name + ")", Screen::LogType::ERROR);
 }
 
+/* No 431 */
+void Handlers::no_nick_given_handler(Client* client, Message* msg) {
+    std::string command = msg->command.get_id();
+    std::string reason = msg->params.getTrailing();
+
+    Screen::log_message(command + ": " + reason, Screen::LogType::ERROR);
+}
+
 /* No 433 */ 
 void Handlers::nickname_in_use_handler(Client* client, Message* msg) {
     std::string command = msg->command.get_id();
@@ -140,6 +148,16 @@ void Handlers::nickname_in_use_handler(Client* client, Message* msg) {
     Screen::log_message(command + ": " + reason + " (" + nick + ")", Screen::LogType::ERROR);
 }
 
+/* No 441 */
+void Handlers::user_not_in_channel_handler(Client* client, Message* msg) {
+    std::string command = msg->command.get_id();
+    std::string reason = msg->params.getTrailing();
+    std::string nick = msg->params.getMiddleContent()[0];
+    std::string channel = msg->params.getMiddleContent()[1];
+
+    Screen::log_message(command + ": " + reason + " (" + nick + " in " + channel + ")", Screen::LogType::ERROR);
+} 
+
 /* No 442 */ 
 void Handlers::not_on_channel_handler(Client* client, Message* msg) {
     std::string command = msg->command.get_id();
@@ -147,6 +165,15 @@ void Handlers::not_on_channel_handler(Client* client, Message* msg) {
     std::string name = msg->params.getMiddleContent()[0];
 
     Screen::log_message(command + ": " + reason + " (" + name + ")", Screen::LogType::ERROR);
+}
+
+/* No 461 */ 
+void Handlers::need_more_params_handler(Client* client, Message* msg) {
+    std::string command = msg->command.get_id();
+    std::string reason = msg->params.getTrailing();
+    std::string command_given = msg->params.getMiddleContent()[0];
+
+    Screen::log_message(command + ": " + reason + " (" + command_given + ")", Screen::LogType::ERROR);
 }
 
 /* No 476 */ 

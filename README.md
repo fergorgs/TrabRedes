@@ -30,9 +30,14 @@ This repository is internet relay chat project for SSC0142 course (ICMC - USP).
 * **Implemented Client Commands**  
 Once the Client is running, you have the following commands at your disposal:
     * **/connect**: use this command to connect to the server. It will only work if the server program is running. You must be connected to execute all other commands (except /quit, of course).
-    * **/quit**: this command terminates the application. It has the same effect as clicking on the famous red 'x' in the top window bar.
+    * **/join**: used to connect to a channel. You need to pass a channel name, with the mask #[name].
+    * **/kick**: this command kicks an user from a channel. Need to pass [nick] of the user to be kicked. You need to be channel OP to perform this command.
+    * **/mute**: this command mutes an user from a channel. Need to pass [nick] of the user to be muted. You need to be channel OP to perform this command.
     * **/nick**: being connected to the server, this command makes you define or change your nickname. If you've just connected, your nickname isn't defined and you must define your nickname to be able to send messages in chat.
     * **/ping**: this command sends a "PING" to the server and waits for "PONG" response. It is used to measure the socket latency. You need to be connected to do this.
+    * **/quit**: this command terminates the application. It has the same effect as clicking on the famous red 'x' in the top window bar.
+    * **/unmute**: this command unmutes an user from a channel. Need to pass [nick] of the user to be unmuted. You need to be channel OP to perform this command.
+    * **/whois**: this command returns the ip of the user with the [nick] sent. Need to pass target user [nick]. You need to be channel OP to perform this command.
 
 ### Running Server
 * To run the server application, simply:

@@ -7,8 +7,20 @@
 #include "Handlers.h"
 
 void Handlers::say(Message* message, Hub* server, Connection* sender) {
-    // add verifications
-    
+
+    if (sender->nick != message->prefix.getNick()) {
+        Message* no_nick = new Message();
+
+        no_nick->command.set_cmd("431");
+        no_nick->params.setTrailing("No nickname given.");
+
+        sender->send_msg(no_nick);
+
+        delete no_nick;
+
+        return;
+    }
+
     if (sender->cur_channel == nullptr) 
         return;
 
@@ -50,8 +62,6 @@ void Handlers::ping(Message* message, Hub* server, Connection* sender) {
 void Handlers::nick(Message* message, Hub* server, Connection* sender) {
     std::vector<std::string> params = message->params.getMiddleContent();
     
-    // add erroneous nick 
-    // add no nickname given
     if (params.size() == 1) {
         std::string new_nick = params[0];
 
@@ -67,8 +77,18 @@ void Handlers::nick(Message* message, Hub* server, Connection* sender) {
             delete nick_in_use;
 
         } else {
-            if (sender->nick != message->prefix.getNick()) // no nickname given
+            if (sender->nick != message->prefix.getNick()) {
+                Message* no_nick = new Message();
+
+                no_nick->command.set_cmd("431");
+                no_nick->params.setTrailing("No nickname given.");
+
+                sender->send_msg(no_nick);
+
+                delete no_nick;
+
                 return;
+            }
 
             if(sender->nick.size() != 0) 
                 server->nicks.erase(sender->nick);
@@ -78,8 +98,16 @@ void Handlers::nick(Message* message, Hub* server, Connection* sender) {
             
             sender->send_msg(message);
         }
+    } else {
+        Message* need_params = new Message();
+        need_params->command.set_cmd("461");
+        need_params->params.addMiddleParam(message->command.get_id());
+        need_params->params.setTrailing("Not enough parameters.");
+
+        sender->send_msg(need_params);
+
+        delete need_params;
     }
-    // else 461
 }
 
 void Handlers::confirm(Message* message, Hub* server, Connection* sender) {
@@ -87,17 +115,24 @@ void Handlers::confirm(Message* message, Hub* server, Connection* sender) {
 }
 
 void Handlers::join(Message* message, Hub* server, Connection* sender) {
-    if (sender->nick != message->prefix.getNick())
+    if (sender->nick != message->prefix.getNick()) {
+        Message* no_nick = new Message();
+
+        no_nick->command.set_cmd("431");
+        no_nick->params.setTrailing("No nickname given.");
+
+        sender->send_msg(no_nick);
+
+        delete no_nick;
+
         return;
+    }
 
     std::vector<std::string> params = message->params.getMiddleContent();
 
     if (params.size() == 1) {
         std::string name = params[0];
         
-        if (sender->nick != message->prefix.getNick())
-            return;
-
         if (name.size() != 0 && name[0] != '#') {
             Message* bad_mask = new Message();
 
@@ -129,8 +164,16 @@ void Handlers::join(Message* message, Hub* server, Connection* sender) {
 
             sender->send_msg(message);
         }
-    } 
-    // else 461
+    } else {
+        Message* need_params = new Message();
+        need_params->command.set_cmd("461");
+        need_params->params.addMiddleParam(message->command.get_id());
+        need_params->params.setTrailing("Not enough parameters.");
+
+        sender->send_msg(need_params);
+
+        delete need_params;
+    }
 }
 
 void Handlers::kick(Message* message, Hub* server, Connection* sender) {
@@ -205,8 +248,17 @@ void Handlers::kick(Message* message, Hub* server, Connection* sender) {
                 kicked->send_msg(kick);
 
                 delete kick;
+            } else {
+                Message* not_in_channel = new Message();
+                not_in_channel->command.set_cmd("441");
+                not_in_channel->params.addMiddleParam(nick);
+                not_in_channel->params.addMiddleParam(ch_name);
+                not_in_channel->params.setTrailing("They aren't on that channel.");
+
+                sender->send_msg(not_in_channel);
+
+                delete not_in_channel;
             }
-            // else user not in channel (441)
         } else {
             Message* error_op = new Message();
 
@@ -218,8 +270,16 @@ void Handlers::kick(Message* message, Hub* server, Connection* sender) {
 
             delete error_op;
         }
+    } else {
+        Message* need_params = new Message();
+        need_params->command.set_cmd("461");
+        need_params->params.addMiddleParam(message->command.get_id());
+        need_params->params.setTrailing("Not enough parameters.");
+
+        sender->send_msg(need_params);
+
+        delete need_params;
     }
-    // else 461
 }
 
 void Handlers::whois(Message* message, Hub* server, Connection* sender) {
@@ -260,8 +320,16 @@ void Handlers::whois(Message* message, Hub* server, Connection* sender) {
 
             delete error_op;
         }
+    } else {
+        Message* need_params = new Message();
+        need_params->command.set_cmd("461");
+        need_params->params.addMiddleParam(message->command.get_id());
+        need_params->params.setTrailing("Not enough parameters.");
+
+        sender->send_msg(need_params);
+
+        delete need_params;
     }
-    // else 461
 }
 
 /*
@@ -346,7 +414,7 @@ void Handlers::mute(Message* message, Hub* server, Connection* sender) {
                 feedback->command.set_cmd("MUTE");
                 feedback->params.addMiddleParam(nick);
 
-                // send to channel
+                // broadcast to channel (maybe?)
                 sender->send_msg(feedback);
 
                 delete feedback;
@@ -359,8 +427,17 @@ void Handlers::mute(Message* message, Hub* server, Connection* sender) {
                 muted->send_msg(warning);
 
                 delete warning;
+            } else {
+                Message* not_in_channel = new Message();
+                not_in_channel->command.set_cmd("441");
+                not_in_channel->params.addMiddleParam(nick);
+                not_in_channel->params.addMiddleParam(ch_name);
+                not_in_channel->params.setTrailing("They aren't on that channel.");
+
+                sender->send_msg(not_in_channel);
+
+                delete not_in_channel;
             }
-            // else user not in channel (441)
         } else {
             Message* error_op = new Message();
 
@@ -372,8 +449,16 @@ void Handlers::mute(Message* message, Hub* server, Connection* sender) {
 
             delete error_op;
         }
+    } else {
+        Message* need_params = new Message();
+        need_params->command.set_cmd("461");
+        need_params->params.addMiddleParam(message->command.get_id());
+        need_params->params.setTrailing("Not enough parameters.");
+
+        sender->send_msg(need_params);
+
+        delete need_params;
     }
-    // else 461
 }
 
 /*
@@ -470,8 +555,17 @@ void Handlers::unmute(Message* message, Hub* server, Connection* sender) {
                 unmuted->send_msg(warning);
 
                 delete warning;
+            } else {
+                Message* not_in_channel = new Message();
+                not_in_channel->command.set_cmd("441");
+                not_in_channel->params.addMiddleParam(nick);
+                not_in_channel->params.addMiddleParam(ch_name);
+                not_in_channel->params.setTrailing("They aren't on that channel.");
+
+                sender->send_msg(not_in_channel);
+
+                delete not_in_channel;
             }
-            // else user not in channel (441)
         } else {
             Message* error_op = new Message();
 
@@ -483,6 +577,14 @@ void Handlers::unmute(Message* message, Hub* server, Connection* sender) {
 
             delete error_op;
         }
+    } else {
+        Message* need_params = new Message();
+        need_params->command.set_cmd("461");
+        need_params->params.addMiddleParam(message->command.get_id());
+        need_params->params.setTrailing("Not enough parameters.");
+
+        sender->send_msg(need_params);
+
+        delete need_params;
     }
-    // else 461
 }

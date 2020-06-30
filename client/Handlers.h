@@ -25,8 +25,11 @@ namespace Handlers {
     
     void no_such_nick_handler(Client* client, Message* msg);        // 401
     void no_such_channel_handler(Client* client, Message* msg);     // 403
+    void no_nick_given_handler(Client* client, Message* msg);       // 431
     void nickname_in_use_handler(Client* client, Message* msg);     // 433
+    void user_not_in_channel_handler(Client* client, Message* msg); // 441
     void not_on_channel_handler(Client* client, Message* msg);      // 442
+    void need_more_params_handler(Client* client, Message* msg);    // 461
     void bad_channel_mask_handler(Client* client, Message* msg);    // 476
     void channel_op_needed_handler(Client* client, Message* msg);   // 482
 }

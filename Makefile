@@ -10,14 +10,14 @@ client_obj = $(patsubst %.cpp,%.o,$(client_src))
 
 client/%.o: client/%.cpp
 	# Making Client Object
-	g++ -c -o $@ $(PCH_CLIENT) $< `pkg-config gtkmm-3.0 --cflags` $(CPP_VERSION) 
+	g++ -g -c -o $@ $(PCH_CLIENT) $< `pkg-config gtkmm-3.0 --cflags` $(CPP_VERSION) 
 
 server/%.o: server/%.cpp
 	# Making Server Object
 	g++ -c -o $@ $(PCH_SERVER) $< -pthread $(CPP_VERSION) 
 
 all: client/PCHClient.h.gch server/PCHServer.h.gch $(client_obj) $(server_obj) 
-	g++ -o bin/app $(client_obj) `pkg-config gtkmm-3.0 --libs` $(CPP_VERSION)
+	g++ -g -o bin/app $(client_obj) `pkg-config gtkmm-3.0 --libs` $(CPP_VERSION)
 	g++ -o bin/hub $(server_obj) -pthread $(CPP_VERSION)
 
 server/PCHServer.h.gch: server/PCHServer.h

@@ -133,6 +133,8 @@ void Client::quit() {
         close(hub_socket);
     }
 
+    delete Screen::window;
+
     if (LOG) std::cout << "CLIENT_LOG: Disconnected from HUB" << std::endl;
     if (LOG) std::cout << "CLIENT_LOG: Shutting Client down" << std::endl;
 
@@ -142,8 +144,10 @@ void Client::quit() {
 Client::Client() {
     channel = "";
     nickname = "";
-    std::chrono::steady_clock::time_point ping_time;
-    std::chrono::steady_clock::time_point pong_time;
+
+    ping_time = std::chrono::steady_clock::now();
+    pong_time = std::chrono::steady_clock::now();
+
     connected = false;
 
     // Setup Screen & Signals
@@ -176,12 +180,14 @@ Client::Client() {
     
     handlers["401"] = Handlers::no_such_nick_handler;
     handlers["403"] = Handlers::no_such_channel_handler;
+    handlers["431"] = Handlers::no_nick_given_handler;
     handlers["433"] = Handlers::nickname_in_use_handler;
+    handlers["441"] = Handlers::user_not_in_channel_handler;
     handlers["442"] = Handlers::not_on_channel_handler;
+    handlers["461"] = Handlers::need_more_params_handler;
     handlers["476"] = Handlers::bad_channel_mask_handler;
     handlers["482"] = Handlers::channel_op_needed_handler;
 
-    // 461
 
     if (LOG) std::cout << "CLIENT_LOG: Started app" << std::endl;
 }
@@ -189,6 +195,8 @@ Client::Client() {
 Client::~Client() {
     shutdown(hub_socket, SHUT_RDWR);
 	close(hub_socket);
+
+    delete Screen::window;
 
     if (LOG) std::cout << "CLIENT_LOG: Disconnected from HUB" << std::endl;
     if (LOG) std::cout << "CLIENT_LOG: Shutting Client down" << std::endl;
