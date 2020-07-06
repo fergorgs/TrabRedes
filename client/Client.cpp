@@ -21,16 +21,39 @@ void Client::reset() {
 }
 
 // Private functions
-void Client::create_connection() {
+void Client::create_connection(std::string& ip_addr) {
     // Socket opening
     hub_socket = socket(AF_INET, SOCK_STREAM, 0);
 
 	struct sockaddr_in hub_address;
     hub_address.sin_family = AF_INET;
-    hub_address.sin_port = htons(SERVER_DOOR);
-    hub_address.sin_addr.s_addr = INADDR_ANY;
 
-	int connection_status = connect(hub_socket, (struct sockaddr*) &hub_address, sizeof(hub_address));
+    if (ip_addr.empty())
+        hub_address.sin_addr.s_addr = INADDR_ANY;
+    else {
+        struct addrinfo hints, *list = NULL;
+        struct sockaddr_in *ip;
+
+        memset(&hints, 0, sizeof hints);
+
+        hints.ai_family = AF_UNSPEC;
+        hints.ai_socktype = SOCK_STREAM;
+
+        if (getaddrinfo(ip_addr.c_str(), NULL, &hints, &list)) return;
+
+        struct addrinfo *host;
+        for (host = list; host != NULL; host = host->ai_next) {
+            hub_address = *(struct sockaddr_in *)(host->ai_addr);
+        }
+
+        freeaddrinfo(list);
+
+        if (LOG) std::cout << "ip: " << inet_ntoa(hub_address.sin_addr) << std::endl;
+    }
+
+    hub_address.sin_port = htons(SERVER_DOOR);
+
+	int connection_status = connect(hub_socket, (struct sockaddr *) &hub_address, sizeof(hub_address));
 	
 	// If there is connection error, shutdown
 	if (connection_status) {

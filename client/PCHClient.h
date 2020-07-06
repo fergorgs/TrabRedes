@@ -4,6 +4,7 @@
 #include <cctype>
 #include <vector>
 #include <chrono>
+#include <algorithm>
 
 #include <gtkmm.h>
 
@@ -12,5 +13,7 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netdb.h>
 
 #include <signal.h>

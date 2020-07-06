@@ -17,7 +17,10 @@ void Executors::connect_executor(Client* client, std::string& text) {
         return;
     }
 
-    client->create_connection();
+    std::size_t arg1 = text.find(" ");
+    std::string server = text.substr(0, arg1);
+
+    client->create_connection(std::ref(server));
 }
 
 void Executors::join_executor(Client* client, std::string& text) {

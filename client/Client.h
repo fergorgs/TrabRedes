@@ -24,12 +24,12 @@ class Client {
         Client();
         
         void quit();
-        void create_connection();
-        void parse_command(std::string& str);
+        void create_connection(std::string&);
+        void parse_command(std::string&);
         
         bool receiver();
 
-        void send_message(Message* msg);
+        void send_message(Message*);
 
         ~Client();
 };
