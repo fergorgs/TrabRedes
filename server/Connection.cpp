@@ -19,10 +19,27 @@ Message* Connection::read(int& ret) {
     }
     char m[4096];
     memset(m, 0, 4096);
-    ret = recv(socket, m,  4096 * sizeof(char), 0);
+
+    int peek = recv(socket, m,  4096 * sizeof(char), MSG_PEEK);
+
+    if (peek != 4096) {
+        std::cout << "PEEKING" << std::endl;
+
+        ret = -1;
+        errno = EAGAIN;
+        return nullptr;
+    }
+
+    ret = recv(socket, m, 4096 * sizeof(char), 0);
+    std::cout << "RECVING" << std::endl;
+
+
     std::string s(m);
+
     Message* msg = nullptr;
-    if(ret > 0) msg = new Message(std::ref(s));
+    if(ret > 0) 
+        msg = new Message(std::ref(s));
+
     return msg;
 }
 

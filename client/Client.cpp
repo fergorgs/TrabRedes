@@ -81,7 +81,11 @@ void Client::send_message(Message* msg) {
     if (msg->command.get_id() == "PING")
         ping_time = std::chrono::steady_clock::now();
 
-	send(hub_socket, serialized_msg.c_str(), 4096, 0);
+    char clear_msg[4096];
+    memset(clear_msg, 0, 4096);
+    strncpy(clear_msg, serialized_msg.c_str(), 4096);
+
+	send(hub_socket, clear_msg, 4096, 0);
 }
 
 void Client::parse_command(std::string& str) {
@@ -111,6 +115,15 @@ bool Client::receiver() {
     while (true) {
 		// if receive data from socket, write in screen
 		char c_msg[4096];
+
+        int peek = recv(socket, c_msg,  4096 * sizeof(char), MSG_PEEK);
+
+        if (peek != 4096) {
+            std::cout << "PEEKING" << std::endl;
+
+            return true;
+        }
+
 		int res = recv(hub_socket, &c_msg, 4096, 0);
         
         std::chrono::steady_clock::time_point recv_time = std::chrono::steady_clock::now();
