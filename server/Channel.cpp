@@ -9,7 +9,7 @@
 Channel::Channel(std::string n, Connection* adm ) : name(n), admin(adm)  { };
 
 Channel::~Channel() {
-    std::cout << "Channel destructed";
+    std::cout << "Channel destructed\n";
 }
 
 void Channel::unmute(Connection* member) {

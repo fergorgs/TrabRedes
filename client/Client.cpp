@@ -116,10 +116,11 @@ bool Client::receiver() {
 		// if receive data from socket, write in screen
 		char c_msg[4096];
 
-        int peek = recv(socket, c_msg,  4096 * sizeof(char), MSG_PEEK);
+        int peek = recv(hub_socket, c_msg,  4096 * sizeof(char), MSG_PEEK);
 
         if (peek != 4096) {
-            std::cout << "PEEKING" << std::endl;
+            if (peek > 0 && LOG)
+                std::cout << "PEEKING" << std::endl;
 
             return true;
         }

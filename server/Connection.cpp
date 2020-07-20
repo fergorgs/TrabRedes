@@ -23,7 +23,8 @@ Message* Connection::read(int& ret) {
     int peek = recv(socket, m,  4096 * sizeof(char), MSG_PEEK);
 
     if (peek != 4096) {
-        std::cout << "PEEKING" << std::endl;
+        if (peek > 0)
+            std::cout << "PEEKING" << std::endl;
 
         ret = -1;
         errno = EAGAIN;

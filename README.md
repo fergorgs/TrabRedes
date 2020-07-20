@@ -29,7 +29,7 @@ This repository is internet relay chat project for SSC0142 course (ICMC - USP).
 
 * **Implemented Client Commands**  
 Once the Client is running, you have the following commands at your disposal:
-    * **/connect**: use this command to connect to the server. It will only work if the server program is running. You must be connected to execute all other commands (except /quit, of course).
+    * **/connect**: use this command to connect to the server. It will only work if the server program is running. You must be connected to execute all other commands (except /quit, of course). This command accept connections to remove computers. To connect locally just do */connnect*; to connect remotely you need to specify a Domain/IP address (*/connect [ip/domain]*). The server to be connected must be running on port 6667.
     * **/join**: used to connect to a channel. You need to pass a channel name, with the mask #[name].
     * **/kick**: this command kicks an user from a channel. Need to pass [nick] of the user to be kicked. You need to be channel OP to perform this command.
     * **/mute**: this command mutes an user from a channel. Need to pass [nick] of the user to be muted. You need to be channel OP to perform this command.
